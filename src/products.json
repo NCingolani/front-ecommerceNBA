@@ -1,0 +1,20 @@
+[
+    {
+        "id": 1,
+        "nombre": "Jersey LeBron James Lakers",
+        "descripcion": "Camiseta oficial City Edition 2024",
+        "precio": 120000
+    },
+    {
+        "id": 2,
+        "nombre": "Zapatillas Nike Kobe Bryant",
+        "descripcion": "Edición especial Mamba Mentality",
+        "precio": 250000
+    },
+    {
+        "id": 3,
+        "nombre": "Pelota Spalding Oficial NBA",
+        "descripcion": "Pelota de cuero genuino tamaño 7",
+        "precio": 85000
+    }
+]
