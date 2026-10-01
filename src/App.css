@@ -1,8 +1,6 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #1a1a1a;
-  color: #ffffff;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -13,6 +11,35 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 40px 20px;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Modos de Color */
+.modo-oscuro {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}
+
+.modo-claro {
+  background-color: #f4f6f8;
+  color: #1a1a1a;
+}
+
+/* Estilos para el Encabezado según el modo */
+.modo-oscuro .header h1 {
+  color: #ffffff;
+}
+
+.modo-claro .header h1 {
+  color: #1d428a;
+}
+
+.modo-claro .subtitle {
+  font-size: 1.25rem;
+  color: #000000;
+  margin: 0;
+  font-weight: 300;
+  letter-spacing: 0.5px;
 }
 
 .header {
@@ -24,12 +51,11 @@ body {
 
 .header h1 {
   font-size: 3.5rem;
-  color: #ffffff;
   margin: 0 0 15px 0;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   font-weight: 800;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .subtitle {
@@ -40,6 +66,30 @@ body {
   letter-spacing: 0.5px;
 }
 
+/* Botón On/Off */
+.btn-onoff {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: 2px solid #1d428a;
+  border-radius: 20px;
+  cursor: pointer;
+  background-color: transparent;
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+.modo-claro .btn-onoff {
+  color: #1d428a;
+}
+
+.btn-onoff.activo {
+  background-color: #c9082a;
+  border-color: #c9082a;
+  color: #ffffff;
+}
+
+/* Resto de estilos */
 main {
   width: 100%;
   max-width: 1200px;

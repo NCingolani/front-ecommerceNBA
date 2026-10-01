@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 
-const OnOff = () => {
-    // Estado inicial: false (no está en el carrito / Off)
+const OnOff = ({ onToggle }) => {
     const [encendido, setEncendido] = useState(false);
 
-    // Función que invierte el estado actual
     const toggleEstado = () => {
-        setEncendido(!encendido);
+        const nuevoEstado = !encendido;
+        setEncendido(nuevoEstado);
+        
+        if (onToggle) {
+            onToggle(nuevoEstado);
+        }
     };
 
     return (
-        <button onClick={toggleEstado}>
-            {encendido ? '✓ Agregado' : 'Agregar al carrito'}
+        <button className={`btn-onoff ${encendido ? 'activo' : ''}`} onClick={toggleEstado}>
+            {encendido ? ' Modo Oscuro: OFF' : ' Modo Oscuro: ON'}
         </button>
     );
 };
