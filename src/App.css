@@ -114,6 +114,7 @@ main {
   text-align: left;
 }
 
+.product-card h2,
 .product-card h3 {
   margin-top: 0;
   color: #333333;
@@ -128,4 +129,15 @@ main {
   font-weight: bold;
   color: #1d428a;
   margin-bottom: 0;
+}
+
+/* Botón de Ver Detalle / Volver dentro de la tarjeta de producto */
+.product-card .btn-onoff,
+.modo-oscuro .product-card .btn-onoff {
+  color: #000000;
+}
+
+.product-card .btn-onoff:hover {
+  background-color: #1d428a;
+  color: #ffffff;
 }
