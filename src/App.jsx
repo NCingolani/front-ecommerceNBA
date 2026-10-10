@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Routes, Route, Link, Navigate } from 'react-router-dom';
 import ProductList from './components/ProductList';
 import ProductDetail from './components/ProductDetail';
+import ProductCreate from './components/ProductCreate';
 import OnOff from './components/OnOff';
 import './App.css';
 
@@ -22,6 +23,9 @@ function App() {
 
         <div style={{ marginTop: '20px' }}>
           <OnOff onToggle={handleToggleColor} />
+          <Link to="/crear" style={{ marginLeft: '15px', color: '#fff', textDecoration: 'underline' }}>
+            Añadir Producto (Admin)
+          </Link>
         </div>
       </header>
 
@@ -29,6 +33,7 @@ function App() {
         <Routes>
           <Route path="/" element={<ProductList />} />
           <Route path="/producto/:id" element={<ProductDetail />} />
+          <Route path="/crear" element={<ProductCreate />} />
           <Route path="/carrito" element={estaAutenticado ? <h2>Carrito Protegido</h2> : <Navigate to="/" replace />} />
         </Routes>
       </main>
