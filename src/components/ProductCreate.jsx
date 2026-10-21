@@ -19,7 +19,7 @@ const ProductCreate = () => {
         // Requiere estar autenticado y tener rol ADMIN según tu SecurityConfig
         const token = localStorage.getItem('token'); // Asumiendo que guardas el JWT aquí
 
-        fetch('http://localhost:8080/api/productos', {
+        fetch('/api/productos', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

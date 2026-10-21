@@ -8,7 +8,7 @@ const ProductList = () => {
 
   useEffect(() => {
     // 1er Componente que llama al endpoint GET /api/productos
-    fetch('http://localhost:8080/api/productos')
+    fetch('/api/productos')
       .then(response => {
         if (!response.ok) throw new Error('Error al obtener los productos');
         return response.json();

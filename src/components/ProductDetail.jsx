@@ -10,7 +10,7 @@ const ProductDetail = () => {
 
     useEffect(() => {
         // 2do Componente que llama al endpoint GET /api/productos/{id}
-        fetch(`http://localhost:8080/api/productos/${id}`)
+        fetch(`/api/productos/${id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Producto no encontrado o error de servidor');
                 return response.json();
