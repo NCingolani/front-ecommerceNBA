@@ -1,24 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Categorias from "../components/Categorias";
+import Footer from "../components/Footer";
 import "./Home.css";
-
-const categorias = [
-  { nombre: "CAMISETAS", imagen: "/Images/Categoria/camisetasCategorias.png" },
-  { nombre: "SHORTS", imagen: "/Images/Categoria/shortCategoria.png" },
-  { nombre: "ZAPATILLAS", imagen: "/Images/Categoria/zapatillaCategoria.png" },
-  { nombre: "ACCESORIOS", imagen: "/Images/Categoria/accesoriosCategoria.png" },
-];
-
-const productos = [
-  { id: 1, nombre: "Camiseta Pro Bicolor", precio: 45990, imagen: "/nba/productos/bulls.jpg" },
-  { id: 2, nombre: "Camiseta City Edition", precio: 45990, imagen: "/nba/productos/warriors.jpg" },
-  { id: 3, nombre: "Camiseta Retro 23", precio: 42990, imagen: "/nba/productos/bulls-retro.jpg" },
-  { id: 4, nombre: "Camiseta Clásica 24", precio: 42990, imagen: "/nba/productos/lakers.jpg" },
-  { id: 5, nombre: "Zapatillas High Performance", precio: 89990, imagen: "/nba/productos/zapatillas.jpg" },
-  { id: 6, nombre: "Shorts Premium", precio: 34990, imagen: "/nba/productos/shorts.jpg" },
-  { id: 7, nombre: "Balón Profesional", precio: 29990, imagen: "/nba/productos/balon.jpg" },
-  { id: 8, nombre: "Mochila Deportiva", precio: 36990, imagen: "/nba/productos/mochila.jpg" },
-];
 
 const pesos = (valor) =>
   new Intl.NumberFormat("es-AR", {
@@ -28,8 +13,34 @@ const pesos = (valor) =>
   }).format(valor);
 
 export default function Home() {
+  const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [carrito, setCarrito] = useState([]);
   const [busqueda, setBusqueda] = useState("");
+  const [cargando, setCargando] = useState(true);
+
+  // Llamada a la base de datos (API)
+  useEffect(() => {
+    const obtenerDatos = async () => {
+      try {
+        // Reemplaza estas URLs con los endpoints de tu backend (Ej: Node/Express, Firebase, etc.)
+        const resProductos = await fetch("http://localhost:3000/api/productos");
+        const dataProductos = await resProductos.json();
+        
+        const resCategorias = await fetch("http://localhost:3000/api/categorias");
+        const dataCategorias = await resCategorias.json();
+
+        setProductos(dataProductos);
+        setCategorias(dataCategorias);
+      } catch (error) {
+        console.error("Error al obtener los datos:", error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    obtenerDatos();
+  }, []); // El array vacío asegura que solo se ejecute una vez al montar el componente
 
   const productosFiltrados = productos.filter((producto) =>
     producto.nombre.toLowerCase().includes(busqueda.toLowerCase())
@@ -41,67 +52,24 @@ export default function Home() {
 
   return (
     <div className="nba-home">
-      {/* NAVBAR */}
-      <header className="nba-navbar">
-        <Link to="/" className="nba-logo">
-          ◉ Tienda <span>NBA</span>
-        </Link>
-
-        <nav>
-          <Link to="/">Inicio</Link>
-          <Link to="/productos">Productos</Link>
-          <a href="#categorias">Categorías</a>
-          <a href="#ofertas">Ofertas</a>
-          <a href="#footer">Contacto</a>
-        </nav>
-
-        <div className="nba-nav-right">
-          <input
-            type="search"
-            placeholder="Buscar productos..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-          />
-          <span aria-label="Productos agregados al carrito">
-            🛒 {carrito.length}
-          </span>
-        </div>
-      </header>
+      <Navbar 
+        busqueda={busqueda} 
+        setBusqueda={setBusqueda} 
+        cantidadCarrito={carrito.length} 
+      />
 
       <main>
         {/* HERO */}
-            
         <section id="inicio" className="nba-hero">
-            <Link
-                to="/productos"
-                className="nba-banner-link"
-                aria-label="Ver productos NBA"
-            />
+          <Link
+            to="/productos"
+            className="nba-banner-link"
+            aria-label="Ver productos NBA"
+          />
         </section>
 
-        {/* CATEGORÍAS */}
-        <section id="categorias" className="nba-section">
-          <div className="nba-heading">
-            <h2>CATEGORÍAS</h2>
-            <Link to="/productos">Ver todas las categorías →</Link>
-          </div>
-
-          <div className="nba-categorias">
-            {categorias.map((categoria) => (
-              <Link
-                to="/productos"
-                className="nba-categoria"
-                key={categoria.nombre}
-              >
-                <img src={categoria.imagen} alt={categoria.nombre} />
-                <div>
-                  <h3>{categoria.nombre}</h3>
-                  <small>Ver productos →</small>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+        {/* COMPONENTE CATEGORÍAS */}
+        {!cargando && <Categorias categorias={categorias} />}
 
         {/* PRODUCTOS DESTACADOS */}
         <section id="productos" className="nba-section">
@@ -110,34 +78,40 @@ export default function Home() {
             <Link to="/productos">Ver todos los productos →</Link>
           </div>
 
-          <div className="nba-productos">
-            {productosFiltrados.map((producto) => (
-              <article className="nba-card" key={producto.id}>
-                <div className="nba-card-imagen">
-                  <img src={producto.imagen} alt={producto.nombre} />
-                </div>
+          {cargando ? (
+            <p>Cargando información de la base de datos...</p>
+          ) : (
+            <>
+              <div className="nba-productos">
+                {productosFiltrados.map((producto) => (
+                  <article className="nba-card" key={producto.id}>
+                    <div className="nba-card-imagen">
+                      <img src={producto.imagen} alt={producto.nombre} />
+                    </div>
 
-                <div className="nba-card-info">
-                  <h3>{producto.nombre}</h3>
-                  <strong>{pesos(producto.precio)}</strong>
-                  <p className="nba-stars">
-                    ★★★★★ <small>(98)</small>
-                  </p>
+                    <div className="nba-card-info">
+                      <h3>{producto.nombre}</h3>
+                      <strong>{pesos(producto.precio)}</strong>
+                      <p className="nba-stars">
+                        ★★★★★ <small>(98)</small>
+                      </p>
 
-                  <Link to={`/producto/${producto.id}`} className="nba-ver-detalle">
-                    Ver detalle →
-                  </Link>
+                      <Link to={`/producto/${producto.id}`} className="nba-ver-detalle">
+                        Ver detalle →
+                      </Link>
 
-                  <button type="button" onClick={() => agregarAlCarrito(producto)}>
-                    🛒 Añadir al carrito
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
+                      <button type="button" onClick={() => agregarAlCarrito(producto)}>
+                        🛒 Añadir al carrito
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
 
-          {productosFiltrados.length === 0 && (
-            <p>No hay productos con ese nombre.</p>
+              {productosFiltrados.length === 0 && (
+                <p>No hay productos con ese nombre.</p>
+              )}
+            </>
           )}
         </section>
 
@@ -157,7 +131,6 @@ export default function Home() {
           <div className="nba-heading">
             <h2>¿POR QUÉ ELEGIRNOS?</h2>
           </div>
-
           <div className="nba-beneficios">
             <div>
               🚚 <strong>Envíos a todo el país</strong>
@@ -191,33 +164,7 @@ export default function Home() {
         </section>
       </main>
 
-      {/* FOOTER */}
-      <footer id="footer" className="nba-footer">
-        <div>
-          <h2>
-            ◉ Tienda <span>NBA</span>
-          </h2>
-          <p>Tu tienda de baloncesto online.</p>
-        </div>
-
-        <div>
-          <h4>Enlaces rápidos</h4>
-          <Link to="/">Inicio</Link>
-          <Link to="/productos">Productos</Link>
-          <a href="#ofertas">Ofertas</a>
-        </div>
-
-        <div>
-          <h4>Ayuda</h4>
-          <p>Preguntas frecuentes</p>
-          <p>Envíos y devoluciones</p>
-        </div>
-
-        <div>
-          <h4>Medios de pago</h4>
-          <p>Tarjetas · Transferencias</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
