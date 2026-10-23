@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
-import { Routes, Route, Link, Navigate } from 'react-router-dom';
 
 import Home from './pages/Home';
 import ProductList from './components/ProductList';
@@ -15,89 +14,89 @@ function App() {
   const [modoActivo, setModoActivo] = useState(false);
   const estaAutenticado = false;
 
-
   const handleToggleColor = (estado) => {
     setModoActivo(estado);
   };
 
   return (
-  <AuthProvider>
-    <div className={`app-container ${modoActivo ? 'modo-claro' : 'modo-oscuro'}`}>
-      <Routes>
-        {/* HOME */}
-        <Route
-          path="/"
-          element={
-            <>
-              <header className="header">
-                <Link to="/" style={{ textDecoration: 'none' }}>
-                  <h1>Tienda NBA</h1>
-                </Link>
-                <HeaderActions onToggleColor={handleToggleColor} />
-              </header>
-              <Home />
-            </>
-          }
-        />
+    <AuthProvider>
+      <div className={`app-container ${modoActivo ? 'modo-claro' : 'modo-oscuro'}`}>
+        <Routes>
+          {/* HOME */}
+          <Route
+            path="/"
+            element={
+              <>
+                <header className="header">
+                  <Link to="/" style={{ textDecoration: 'none' }}>
+                    <h1>Tienda NBA</h1>
+                  </Link>
+                  <HeaderActions onToggleColor={handleToggleColor} />
+                </header>
+                <Home />
+              </>
+            }
+          />
 
-        {/* CATÁLOGO */}
-        <Route
-          path="/productos"
-          element={
-            <>
-              <header className="header">
-                <Link to="/">
-                  <h1>Tienda NBA</h1>
-                </Link>
-                <p className="subtitle">
-                  Explora nuestra colección exclusiva
-                </p>
-                <HeaderActions onToggleColor={handleToggleColor} />
-              </header>
-              <ProductList />
-            </>
-          }
-        />
+          {/* CATÁLOGO */}
+          <Route
+            path="/productos"
+            element={
+              <>
+                <header className="header">
+                  <Link to="/">
+                    <h1>Tienda NBA</h1>
+                  </Link>
+                  <p className="subtitle">
+                    Explora nuestra colección exclusiva
+                  </p>
+                  <HeaderActions onToggleColor={handleToggleColor} />
+                </header>
+                <ProductList />
+              </>
+            }
+          />
 
-        {/* DETALLE DEL PRODUCTO */}
-        <Route
-          path="/producto/:id"
-          element={<ProductDetail />}
-        />
+          {/* DETALLE DEL PRODUCTO */}
+          <Route
+            path="/producto/:id"
+            element={<ProductDetail />}
+          />
 
-        {/* LOGIN Y REGISTRO */}
-        <Route
-          path="/login"
-          element={<AuthPage mode="login" />}
-        />
-        <Route
-          path="/registro"
-          element={<AuthPage mode="register" />}
-        />
+          {/* LOGIN Y REGISTRO */}
+          <Route
+            path="/login"
+            element={<AuthPage mode="login" />}
+          />
+          <Route
+            path="/registro"
+            element={<AuthPage mode="register" />}
+          />
 
-        {/* CREAR PRODUCTO - SOLO ADMIN */}
-        <Route
-          path="/crear"
-          element={
-            <AdminRoute>
-              <ProductCreate />
-            </AdminRoute>
-          }
-        />
+          {/* CREAR PRODUCTO - SOLO ADMIN */}
+          <Route
+            path="/crear"
+            element={
+              <AdminRoute>
+                <ProductCreate />
+              </AdminRoute>
+            }
+          />
 
-        {/* CARRITO PROTEGIDO */}
-        <Route
-          path="/carrito"
-          element={
-            <PrivateRoute>
-              <h2>Carrito Protegido</h2>
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-    </div>
-  </AuthProvider>
-);
+          {/* CARRITO PROTEGIDO */}
+          <Route
+            path="/carrito"
+            element={
+              <PrivateRoute>
+                <h2>Carrito Protegido</h2>
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </div>
+    </AuthProvider>
+  );
+}
 
 function HeaderActions({ onToggleColor }) {
   const { session, logout } = useAuth();
