@@ -4,11 +4,21 @@ import { Link } from 'react-router-dom';
 const ProductCard = ({ producto }) => {
   return (
     <div className="product-card">
+      {/* Contenedor y etiqueta de la imagen */}
+      <div className="product-image-container">
+        <img 
+          src={producto.imagenUrl || 'https://via.placeholder.com/200'} 
+          alt={producto.nombre} 
+          className="product-image"
+        />
+      </div>
+
       <h3 className="product-name">{producto.nombre}</h3>
       <p className="product-description">{producto.descripcion}</p>
       <p className="precio product-price">${producto.precio.toLocaleString()}</p>
+      
       <Link
-      to={`/producto/${producto.id}`} 
+        to={`/producto/${producto.id}`} 
         className="btn-onoff" 
         style={{ 
           textDecoration: 'none', 

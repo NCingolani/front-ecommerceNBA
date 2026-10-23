@@ -1,3 +1,6 @@
+/* ==========================================
+   ESTILOS GENERALES Y LAYOUT BASE
+   ========================================== */
 body {
   margin: 0;
   padding: 0;
@@ -5,16 +8,35 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+#root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
 .app-container {
+  width: 100%;
+  max-width: none;
   min-height: 100vh;
+  margin: 0;
+  padding: 40px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 20px;
   transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-/* Modos de Color */
+.nba-home {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ==========================================
+   MODOS DE COLOR (OSCURO / CLARO)
+   ========================================== */
 .modo-oscuro {
   background-color: #1a1a1a;
   color: #ffffff;
@@ -25,7 +47,7 @@ body {
   color: #1a1a1a;
 }
 
-/* Estilos para el Encabezado según el modo */
+/* Modos aplicados al Encabezado */
 .modo-oscuro .header h1 {
   color: #ffffff;
 }
@@ -35,13 +57,12 @@ body {
 }
 
 .modo-claro .subtitle {
-  font-size: 1.25rem;
   color: #000000;
-  margin: 0;
-  font-weight: 300;
-  letter-spacing: 0.5px;
 }
 
+/* ==========================================
+   ENCABEZADO (HEADER)
+   ========================================== */
 .header {
   text-align: center;
   margin-bottom: 50px;
@@ -111,7 +132,9 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* Botón On/Off */
+/* ==========================================
+   BOTÓN ON/OFF Y CONTROLES
+   ========================================== */
 .btn-onoff {
   padding: 10px 20px;
   font-size: 1rem;
@@ -134,7 +157,9 @@ body {
   color: #ffffff;
 }
 
-/* Resto de estilos */
+/* ==========================================
+   SECCIONES Y LISTADO DE PRODUCTOS
+   ========================================== */
 main {
   width: 100%;
   max-width: 1200px;
@@ -176,7 +201,7 @@ main {
   margin-bottom: 0;
 }
 
-/* Botón de Ver Detalle / Volver dentro de la tarjeta de producto */
+/* Botones específicos dentro de tarjetas */
 .product-card .btn-onoff,
 .modo-oscuro .product-card .btn-onoff {
   color: #000000;
