@@ -7,8 +7,10 @@ import ProductDetail from './components/ProductDetail';
 import ProductCreate from './components/ProductCreate';
 import AuthPage from './components/AuthPage';
 import OnOff from './components/OnOff';
+import Cart from './components/Cart';
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import './App.css';
+
 
 function App() {
   const [modoActivo, setModoActivo] = useState(false);
@@ -88,11 +90,19 @@ function App() {
             path="/carrito"
             element={
               <PrivateRoute>
-                <h2>Carrito Protegido</h2>
+                <>
+                  <header className="header">
+                    <Link to="/" style={{ textDecoration: 'none' }}>
+                      <h1>Tienda NBA</h1>
+                    </Link>
+                    <HeaderActions onToggleColor={handleToggleColor} />
+                  </header>
+                  <Cart />
+                </>
               </PrivateRoute>
             }
           />
-        </Routes>
+        </Routes>  {/* <-- Faltaba esta etiqueta */}
       </div>
     </AuthProvider>
   );
@@ -104,6 +114,9 @@ function HeaderActions({ onToggleColor }) {
   return (
     <nav className="header-actions" aria-label="Navegación de cuenta">
       <OnOff onToggle={onToggleColor} />
+      <Link className="header-link" to="/carrito" style={{ fontSize: '1.2rem', textDecoration: 'none' }}>
+        🛒
+      </Link>
       {session?.role === 'ADMIN' && <Link className="header-link" to="/crear">Añadir producto</Link>}
       {session ? (
         <>
