@@ -8,38 +8,39 @@ const ProductCreate = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        
+
         const nuevoProducto = {
             nombre,
             precio: parseFloat(precio),
-            descripcion
+            descripcion,
+            imagen: "/Images/Productos/default.jpg", // Valor estático por defecto
+            stock: 10,
+            talle: "Único"
         };
 
-        // 3er Componente que llama al endpoint POST /api/productos
-        // Requiere estar autenticado y tener rol ADMIN según tu SecurityConfig
-        const token = localStorage.getItem('token'); // Asumiendo que guardas el JWT aquí
+        const token = localStorage.getItem('token');
 
         fetch('/api/productos', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` // Aquí se envía el token
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(nuevoProducto)
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Error al crear el producto. ¿Eres Admin?');
-            return response.json();
-        })
-        .then(data => {
-            setMensaje('Producto creado con éxito!');
-            setNombre('');
-            setPrecio('');
-            setDescripcion('');
-        })
-        .catch(error => {
-            setMensaje(error.message);
-        });
+            .then(response => {
+                if (!response.ok) throw new Error('Error al crear el producto. ¿Eres Admin?');
+                return response.json();
+            })
+            .then(data => {
+                setMensaje('Producto creado con éxito!');
+                setNombre('');
+                setPrecio('');
+                setDescripcion('');
+            })
+            .catch(error => {
+                setMensaje(error.message);
+            });
     };
 
     return (
@@ -47,27 +48,27 @@ const ProductCreate = () => {
             <h2>Crear Nuevo Producto</h2>
             {mensaje && <p style={{ color: 'red', fontWeight: 'bold' }}>{mensaje}</p>}
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input 
-                    type="text" 
-                    placeholder="Nombre del producto" 
-                    value={nombre} 
-                    onChange={e => setNombre(e.target.value)} 
-                    required 
+                <input
+                    type="text"
+                    placeholder="Nombre del producto"
+                    value={nombre}
+                    onChange={e => setNombre(e.target.value)}
+                    required
                     style={{ padding: '8px' }}
                 />
-                <input 
-                    type="number" 
-                    placeholder="Precio" 
-                    value={precio} 
-                    onChange={e => setPrecio(e.target.value)} 
-                    required 
+                <input
+                    type="number"
+                    placeholder="Precio"
+                    value={precio}
+                    onChange={e => setPrecio(e.target.value)}
+                    required
                     style={{ padding: '8px' }}
                 />
-                <textarea 
-                    placeholder="Descripción" 
-                    value={descripcion} 
-                    onChange={e => setDescripcion(e.target.value)} 
-                    required 
+                <textarea
+                    placeholder="Descripción"
+                    value={descripcion}
+                    onChange={e => setDescripcion(e.target.value)}
+                    required
                     style={{ padding: '8px' }}
                 />
                 <button type="submit" className="btn-onoff">
