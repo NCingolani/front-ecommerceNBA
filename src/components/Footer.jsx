@@ -14,7 +14,7 @@ export default function Footer() {
         <h4>Enlaces rápidos</h4>
         <Link to="/">Inicio</Link>
         <Link to="/productos">Productos</Link>
-        <a href="#ofertas">Ofertas</a>
+        <a href="/#ofertas">Ofertas</a>
       </div>
 
       <div>

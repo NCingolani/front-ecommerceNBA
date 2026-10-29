@@ -1,63 +1,37 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Categorias from "../components/Categorias";
-import Footer from "../components/Footer";
+import ProductCard from "../components/ProductCard";
 import "./Home.css";
 
-const pesos = (valor) =>
-  new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS",
-    maximumFractionDigits: 0,
-  }).format(valor);
-
-export default function Home() {
+export default function Home({ onAddToCart }) {
   const [productos, setProductos] = useState([]);
-  const [categorias, setCategorias] = useState([]);
-  const [carrito, setCarrito] = useState([]);
-  const [busqueda, setBusqueda] = useState("");
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
 
-  // Llamada a la base de datos (API)
   useEffect(() => {
     const obtenerDatos = async () => {
       try {
-        // Reemplaza estas URLs con los endpoints de tu backend (Ej: Node/Express, Firebase, etc.)
-        const resProductos = await fetch("http://localhost:3000/api/productos");
-        const dataProductos = await resProductos.json();
-        
-        const resCategorias = await fetch("http://localhost:3000/api/categorias");
-        const dataCategorias = await resCategorias.json();
+        const respuesta = await fetch("/api/productos");
+        if (!respuesta.ok) throw new Error("No se pudieron cargar los productos.");
 
-        setProductos(dataProductos);
-        setCategorias(dataCategorias);
+        const datos = await respuesta.json();
+        setProductos(Array.isArray(datos) ? datos : []);
       } catch (error) {
-        console.error("Error al obtener los datos:", error);
+        console.error("Error al obtener los productos:", error);
+        setError("No se pudieron cargar los productos. Intenta nuevamente más tarde.");
       } finally {
         setCargando(false);
       }
     };
 
     obtenerDatos();
-  }, []); // El array vacío asegura que solo se ejecute una vez al montar el componente
+  }, []);
 
-  const productosFiltrados = productos.filter((producto) =>
-    producto.nombre.toLowerCase().includes(busqueda.toLowerCase())
-  );
-
-  const agregarAlCarrito = (producto) => {
-    setCarrito((anterior) => [...anterior, producto]);
-  };
+  const categorias = [...new Set(productos.map((producto) => producto.nombreCategoria).filter(Boolean))]
+    .map((nombre) => ({ nombre }));
 
   return (
     <div className="nba-home">
-      <Navbar 
-        busqueda={busqueda} 
-        setBusqueda={setBusqueda} 
-        cantidadCarrito={carrito.length} 
-      />
-
       <main>
         {/* HERO */}
         <section id="inicio" className="nba-hero">
@@ -68,8 +42,30 @@ export default function Home() {
           />
         </section>
 
-        {/* COMPONENTE CATEGORÍAS */}
-        {!cargando && <Categorias categorias={categorias} />}
+        <section id="categorias" className="nba-section">
+          <div className="nba-heading">
+            <h2>CATEGORÍAS</h2>
+            <Link to="/productos">Ver todos los productos →</Link>
+          </div>
+          {categorias.length > 0 ? (
+            <div className="nba-categorias nba-categorias-lista">
+              {categorias.map((categoria) => (
+                <Link
+                  to={`/productos?categoria=${encodeURIComponent(categoria.nombre)}`}
+                  className="nba-categoria"
+                  key={categoria.nombre}
+                >
+                  <div>
+                    <h3>{categoria.nombre}</h3>
+                    <small>Ver productos →</small>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <p>Explorá todas nuestras categorías desde el catálogo.</p>
+          )}
+        </section>
 
         {/* PRODUCTOS DESTACADOS */}
         <section id="productos" className="nba-section">
@@ -80,36 +76,22 @@ export default function Home() {
 
           {cargando ? (
             <p>Cargando información de la base de datos...</p>
+          ) : error ? (
+            <p role="alert">{error}</p>
           ) : (
             <>
               <div className="nba-productos">
-                {productosFiltrados.map((producto) => (
-                  <article className="nba-card" key={producto.id}>
-                    <div className="nba-card-imagen">
-                      <img src={producto.imagen} alt={producto.nombre} />
-                    </div>
-
-                    <div className="nba-card-info">
-                      <h3>{producto.nombre}</h3>
-                      <strong>{pesos(producto.precio)}</strong>
-                      <p className="nba-stars">
-                        ★★★★★ <small>(98)</small>
-                      </p>
-
-                      <Link to={`/producto/${producto.id}`} className="nba-ver-detalle">
-                        Ver detalle →
-                      </Link>
-
-                      <button type="button" onClick={() => agregarAlCarrito(producto)}>
-                        🛒 Añadir al carrito
-                      </button>
-                    </div>
-                  </article>
+                {productos.map((producto) => (
+                  <ProductCard
+                    key={producto.id}
+                    producto={producto}
+                    onAddToCart={onAddToCart}
+                  />
                 ))}
               </div>
 
-              {productosFiltrados.length === 0 && (
-                <p>No hay productos con ese nombre.</p>
+              {productos.length === 0 && (
+                <p>No hay productos disponibles.</p>
               )}
             </>
           )}
@@ -164,7 +146,6 @@ export default function Home() {
         </section>
       </main>
 
-      <Footer />
     </div>
   );
 }
