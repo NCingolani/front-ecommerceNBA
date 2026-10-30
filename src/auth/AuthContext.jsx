@@ -3,6 +3,20 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 const AuthContext = createContext(null);
 const TOKEN_KEY = 'token';
 
+function extractRole(payload) {
+  const rawRole =
+    payload.role ||
+    payload.rol ||
+    (Array.isArray(payload.roles) && payload.roles[0]) ||
+    (Array.isArray(payload.authorities) && (payload.authorities[0]?.authority || payload.authorities[0])) ||
+    null;
+
+  if (typeof rawRole === 'string') {
+    return rawRole.replace(/^ROLE_/, '');
+  }
+  return null;
+}
+
 function sessionFromToken(token) {
   const [, encodedPayload] = token.split('.');
   if (!encodedPayload) throw new Error('El token recibido no es válido.');
@@ -19,7 +33,7 @@ function sessionFromToken(token) {
   return {
     token,
     email: payload.sub || '',
-    role: payload.role || null,
+    role: extractRole(payload),
     expiresAt,
   };
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 import ProductCard from './ProductCard';
 import './ProductList.css';
 
@@ -50,19 +51,22 @@ const obtenerCategoria = (producto) => {
   const nombre = normalizar(producto.nombre);
 
   if (nombre.includes('jersey') ||
-      nombre.includes('camiseta')) return 'Camisetas';
+    nombre.includes('camiseta')) return 'Camisetas';
 
   if (nombre.includes('short')) return 'Shorts';
 
   if (nombre.includes('zapatilla')) return 'Zapatillas';
 
   if (nombre.includes('gorra') ||
-      nombre.includes('pelota')) return 'Accesorios';
+    nombre.includes('pelota')) return 'Accesorios';
 
   return '';
 };
 
 const ProductList = ({ onAddToCart }) => {
+  const { session } = useAuth();
+  const esAdmin = session?.role === 'ADMIN';
+
   const [searchParams] = useSearchParams();
   const categoriaURL =
     searchParams.get('categoria')?.trim() || '';
@@ -110,6 +114,10 @@ const ProductList = ({ onAddToCart }) => {
         setLoading(false);
       });
   }, []);
+
+  const handleProductoEliminado = (idEliminado) => {
+    setProductos((prev) => prev.filter((p) => p.id !== idEliminado));
+  };
 
   // Precio máximo según los productos reales
   const precioTope = Math.max(
@@ -179,7 +187,7 @@ const ProductList = ({ onAddToCart }) => {
     const coincidePrecio =
       precioProducto >= filtrosAplicados.minimo &&
       precioProducto <=
-        (filtrosAplicados.maximo ?? precioTope);
+      (filtrosAplicados.maximo ?? precioTope);
 
     return (
       coincideURL &&
@@ -229,9 +237,16 @@ const ProductList = ({ onAddToCart }) => {
           <h1>{categoriaURL || 'Todos los productos'}</h1>
         </div>
 
-        {categoriaURL && (
-          <Link to="/productos">Ver todos los productos</Link>
-        )}
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          {esAdmin && (
+            <Link to="/crear" className="btn-onoff activo" style={{ textDecoration: 'none' }}>
+              + Crear producto
+            </Link>
+          )}
+          {categoriaURL && (
+            <Link to="/productos">Ver todos los productos</Link>
+          )}
+        </div>
       </div>
 
       {/* BUSCADOR Y ORDEN */}
@@ -393,6 +408,7 @@ const ProductList = ({ onAddToCart }) => {
                 key={producto.id}
                 producto={producto}
                 onAddToCart={onAddToCart}
+                onEliminar={handleProductoEliminado}
               />
             ))}
           </div>

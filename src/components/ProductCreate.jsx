@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 
 const ProductCreate = () => {
+    const { session } = useAuth();
+    const navigate = useNavigate();
+
     const [nombre, setNombre] = useState('');
     const [precio, setPrecio] = useState('');
     const [descripcion, setDescripcion] = useState('');
@@ -13,12 +18,12 @@ const ProductCreate = () => {
             nombre,
             precio: parseFloat(precio),
             descripcion,
-            imagen: "/Images/Productos/default.jpg", // Valor estático por defecto
+            imagen: "/Images/Productos/JerseyLeBronJames.jpg",
             stock: 10,
             talle: "Único"
         };
 
-        const token = localStorage.getItem('token');
+        const token = session?.token || localStorage.getItem('token');
 
         fetch('/api/productos', {
             method: 'POST',
@@ -32,7 +37,7 @@ const ProductCreate = () => {
                 if (!response.ok) throw new Error('Error al crear el producto. ¿Eres Admin?');
                 return response.json();
             })
-            .then(data => {
+            .then(() => {
                 setMensaje('Producto creado con éxito!');
                 setNombre('');
                 setPrecio('');
@@ -71,8 +76,11 @@ const ProductCreate = () => {
                     required
                     style={{ padding: '8px' }}
                 />
-                <button type="submit" className="btn-onoff">
+                <button type="submit" className="btn-onoff activo">
                     Guardar Producto
+                </button>
+                <button type="button" className="btn-onoff" onClick={() => navigate('/productos')}>
+                    Volver al Catálogo
                 </button>
             </form>
         </div>

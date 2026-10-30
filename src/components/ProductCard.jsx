@@ -1,21 +1,20 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 import OnOff from './OnOff';
 
 // Imágenes guardadas en public/Images/Productos
 const imagenesProductos = {
-  'Jersey LeBron James #23 Lakers':
-    '/Images/Productos/JerseyLeBronJames.jpg',
-
-  'Jersey Stephen Curry #30 Warriors':
-    '/Images/Productos/JerseyStephenCurry.jpg',
-
-  'Zapatillas Nike Luka 2':
-    '/Images/Productos/ZapatillasNikeLuka2.jpg'
+  'Jersey LeBron James #23 Lakers': '/Images/Productos/JerseyLeBronJames.jpg',
+  'Jersey LeBron James Lakers': '/Images/Productos/JerseyLeBronJames.jpg',
+  'Jersey Stephen Curry #30 Warriors': '/Images/Productos/JerseyStephenCurry.jpg',
+  'Jersey Stephen Curry Warriors': '/Images/Productos/JerseyStephenCurry.jpg',
+  'Zapatillas Nike Luka 2': '/Images/Productos/ZapatillasNikeLuka2.jpg'
 };
 
-const ProductCard = ({ producto, onAddToCart }) => {
+const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
+  const { session } = useAuth();
+  const esAdmin = session?.role === 'ADMIN';
 
   const precio = Number(producto.precio);
 
@@ -24,6 +23,24 @@ const ProductCard = ({ producto, onAddToCart }) => {
 
   // Priorizar la imagen del frontend
   const imagen = imagenLocal || producto.imagen;
+
+  const handleDelete = async () => {
+    if (!window.confirm(`¿Eliminar "${producto.nombre}"?`)) return;
+
+    try {
+      const res = await fetch(`/api/productos/${producto.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session?.token || localStorage.getItem('token')}`
+        }
+      });
+
+      if (!res.ok) throw new Error('Error al eliminar producto. Verificá tener rol ADMIN.');
+      if (onEliminar) onEliminar(producto.id);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   return (
     <div className="product-card">
@@ -78,10 +95,10 @@ const ProductCard = ({ producto, onAddToCart }) => {
       >
         {Number.isFinite(precio)
           ? new Intl.NumberFormat('es-AR', {
-              style: 'currency',
-              currency: 'ARS',
-              maximumFractionDigits: 0
-            }).format(precio)
+            style: 'currency',
+            currency: 'ARS',
+            maximumFractionDigits: 0
+          }).format(precio)
           : 'Precio no disponible'}
       </p>
 
@@ -111,6 +128,18 @@ const ProductCard = ({ producto, onAddToCart }) => {
       >
         Ver Detalle
       </Link>
+
+      {/* BOTÓN ELIMINAR (SOLO ADMIN) */}
+      {esAdmin && (
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="btn-onoff activo"
+          style={{ width: '100%', marginTop: '10px' }}
+        >
+          🗑 Eliminar
+        </button>
+      )}
 
     </div>
   );
