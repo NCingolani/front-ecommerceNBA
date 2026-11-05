@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import ProductCard from './ProductCard';
 import './ProductList.css';
+import { useCart } from '../context/CartContext';
 
 const normalizar = (valor = '') =>
   String(valor ?? '')
@@ -63,7 +64,8 @@ const obtenerCategoria = (producto) => {
   return '';
 };
 
-const ProductList = ({ onAddToCart }) => {
+const ProductList = () => {
+  const { agregarAlCarrito } = useCart();
   const { session } = useAuth();
   const esAdmin = session?.role === 'ADMIN';
 
@@ -407,7 +409,7 @@ const ProductList = ({ onAddToCart }) => {
               <ProductCard
                 key={producto.id}
                 producto={producto}
-                onAddToCart={onAddToCart}
+                onAddToCart={agregarAlCarrito}
                 onEliminar={handleProductoEliminado}
               />
             ))}
