@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useCart } from '../context/CartContext';
 import './ProductDetail.css';
 
 const imagenesProductos = {
@@ -15,6 +16,8 @@ const ProductDetail = ({ onAddToCart }) => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { session } = useAuth();
+    const { agregarAlCarrito } = useCart();
+    const handleAddToCart = onAddToCart || agregarAlCarrito;
     const esAdmin = session?.role === 'ADMIN';
 
     const [producto, setProducto] = useState(null);
@@ -143,7 +146,7 @@ const ProductDetail = ({ onAddToCart }) => {
                             type="button"
                             className="product-detail-add"
                             disabled={!disponible}
-                            onClick={() => onAddToCart && onAddToCart({ ...producto, cantidad })}
+                            onClick={() => handleAddToCart && handleAddToCart({ ...producto, cantidad })}
                         >
                             🛒 Añadir al carrito
                         </button>

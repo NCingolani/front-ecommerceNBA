@@ -65,7 +65,7 @@ body {
    ========================================== */
 .header {
   text-align: center;
-  margin-bottom: 50px;
+  margin: 30px auto 35px;
   width: 100%;
   max-width: 800px;
 }

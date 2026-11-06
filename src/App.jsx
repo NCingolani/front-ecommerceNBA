@@ -54,6 +54,7 @@ function App() {
                     </Link>
 
                     <HeaderActions
+                      modoActivo={modoActivo}
                       onToggleColor={handleToggleColor}
                     />
                   </header>
@@ -81,6 +82,7 @@ function App() {
                     </p>
 
                     <HeaderActions
+                      modoActivo={modoActivo}
                       onToggleColor={handleToggleColor}
                     />
                   </header>
@@ -122,24 +124,23 @@ function App() {
             <Route
               path="/carrito"
               element={
-                <PrivateRoute>
-                  <>
-                    <header className="header">
-                      <Link
-                        to="/"
-                        style={{ textDecoration: 'none' }}
-                      >
-                        <h1>Tienda NBA</h1>
-                      </Link>
+                <>
+                  <header className="header">
+                    <Link
+                      to="/"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <h1>Tienda NBA</h1>
+                    </Link>
 
-                      <HeaderActions
-                        onToggleColor={handleToggleColor}
-                      />
-                    </header>
+                    <HeaderActions
+                      modoActivo={modoActivo}
+                      onToggleColor={handleToggleColor}
+                    />
+                  </header>
 
-                    <Carrito />
-                  </>
-                </PrivateRoute>
+                  <Carrito />
+                </>
               }
             />
 
@@ -151,7 +152,7 @@ function App() {
 }
 
 // NAVEGACIÓN SUPERIOR
-function HeaderActions({ onToggleColor }) {
+function HeaderActions({ modoActivo, onToggleColor }) {
   const { session, logout } = useAuth();
 
   // Obtener cantidad de productos del carrito
@@ -164,7 +165,7 @@ function HeaderActions({ onToggleColor }) {
     >
 
       {/* MODO OSCURO */}
-      <OnOff onToggle={onToggleColor} />
+      <OnOff activo={modoActivo} onToggle={onToggleColor} />
 
       {/* CATÁLOGO */}
       <Link

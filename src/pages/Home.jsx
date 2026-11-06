@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
+import { useCart } from "../context/CartContext";
 import "./Home.css";
 
 export default function Home({ onAddToCart }) {
+  const { agregarAlCarrito } = useCart();
+  const handleAddToCart = onAddToCart || agregarAlCarrito;
   const [productos, setProductos] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
@@ -85,7 +88,7 @@ export default function Home({ onAddToCart }) {
                   <ProductCard
                     key={producto.id}
                     producto={producto}
-                    onAddToCart={onAddToCart}
+                    onAddToCart={handleAddToCart}
                   />
                 ))}
               </div>

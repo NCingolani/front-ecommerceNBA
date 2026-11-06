@@ -1,0 +1,569 @@
+/* ==========================================
+   VARIABLES DE TEMA (MODO OSCURO / MODO CLARO)
+   ========================================== */
+.cart-wrapper {
+    --cart-bg: #121212;
+    --cart-text: #ffffff;
+    --cart-text-muted: #cccccc;
+    --cart-border: #3d3d3d;
+    --cart-control-border: #666666;
+    --cart-placeholder-bg: #161616;
+    --cart-placeholder-line: #4a4a4a;
+    --cart-popover-bg: #141414;
+    --cart-popover-border: #2e2e2e;
+    --cart-btn-hover-bg: rgba(255, 255, 255, 0.06);
+
+    width: 100%;
+    background-color: var(--cart-bg);
+    color: var(--cart-text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+.modo-claro .cart-wrapper {
+    --cart-bg: #f4f6f8;
+    --cart-text: #1a1a1a;
+    --cart-text-muted: #4b5563;
+    --cart-border: #cbd5e1;
+    --cart-control-border: #64748b;
+    --cart-placeholder-bg: #e2e8f0;
+    --cart-placeholder-line: #94a3b8;
+    --cart-popover-bg: #ffffff;
+    --cart-popover-border: #cbd5e1;
+    --cart-btn-hover-bg: rgba(29, 66, 138, 0.08);
+}
+
+/* ==========================================
+   SUB-NAVBAR SECUNDARIA (ESTILO MOCKUP)
+   ========================================== */
+.cart-subnavbar {
+    background-color: #081522;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 4%;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-top: 1px solid #14263a;
+    border-bottom: 1px solid #14263a;
+}
+
+.cart-subnavbar-logo {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #ffffff;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.cart-subnavbar-logo span {
+    color: #ed1936;
+}
+
+.cart-subnavbar-links {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    flex-wrap: wrap;
+}
+
+.cart-subnavbar-links a {
+    color: #ffffff;
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.cart-subnavbar-links a:hover {
+    opacity: 0.8;
+}
+
+.cart-subnavbar-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.cart-subnavbar-search input {
+    background-color: #ffffff;
+    color: #111827;
+    border: none;
+    border-radius: 4px;
+    padding: 7px 12px;
+    font-size: 0.8rem;
+    width: 165px;
+    outline: none;
+}
+
+.cart-subnavbar-cart {
+    color: #ffffff;
+    font-size: 0.85rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* ==========================================
+   CUERPO PRINCIPAL DEL CARRITO
+   ========================================== */
+.cart-page {
+    width: 100%;
+    background-color: var(--cart-bg);
+    color: var(--cart-text);
+    padding-bottom: 50px;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Encabezado Carrito + Busqueda */
+.cart-header-section {
+    width: 100%;
+    border-bottom: 1px solid var(--cart-border);
+}
+
+.cart-header {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 28px 28px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.cart-header h1 {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    color: var(--cart-text);
+}
+
+.cart-search {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-right: 40px;
+}
+
+.cart-search label {
+    font-size: 0.82rem;
+    color: var(--cart-text-muted);
+}
+
+.cart-search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 230px;
+}
+
+.cart-search-box input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--cart-control-border);
+    color: var(--cart-text);
+    padding: 7px 32px 7px 10px;
+    border-radius: 2px;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.cart-search-box input::placeholder {
+    color: #888888;
+}
+
+.cart-search-box input:focus {
+    border-color: var(--cart-text);
+}
+
+.cart-search-icon {
+    position: absolute;
+    right: 8px;
+    font-size: 0.9rem;
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+/* ==========================================
+   FILAS DE PRODUCTOS DEL CARRITO
+   ========================================== */
+.cart-items-container {
+    width: 100%;
+}
+
+.cart-item-row {
+    width: 100%;
+    border-bottom: 1px solid var(--cart-border);
+}
+
+.cart-item {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 26px 28px;
+    display: grid;
+    grid-template-columns: 145px 1.3fr 1fr 1.2fr;
+    align-items: center;
+    gap: 24px;
+    min-height: 185px;
+}
+
+/* Cuadrado con la cruz diagonal como en el mockup */
+.item-image-placeholder {
+    width: 140px;
+    height: 140px;
+    border: 1px solid var(--cart-control-border);
+    position: relative;
+    overflow: hidden;
+    background-color: var(--cart-placeholder-bg);
+    background-image:
+        linear-gradient(to top right, transparent calc(50% - 0.8px), var(--cart-placeholder-line) calc(50% - 0.8px), var(--cart-placeholder-line) calc(50% + 0.8px), transparent calc(50% + 0.8px)),
+        linear-gradient(to bottom right, transparent calc(50% - 0.8px), var(--cart-placeholder-line) calc(50% - 0.8px), var(--cart-placeholder-line) calc(50% + 0.8px), transparent calc(50% + 0.8px));
+}
+
+.item-image-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    z-index: 1;
+    background-color: var(--cart-placeholder-bg);
+}
+
+/* Detalles del producto (Nombre, Descripción, Precio unitario) */
+.item-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 10px;
+}
+
+.item-details h3 {
+    margin: 0 0 4px 0;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--cart-text);
+}
+
+.item-details p {
+    margin: 0 0 36px 0;
+    color: var(--cart-text-muted);
+    font-size: 0.86rem;
+}
+
+.item-unit-price {
+    font-weight: 500;
+    font-size: 1.25rem;
+    color: var(--cart-text);
+}
+
+/* Selector de cantidad (- 1 +) */
+.item-quantity-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.item-quantity {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid var(--cart-control-border);
+    border-radius: 999px;
+    padding: 5px 16px;
+    width: 175px;
+}
+
+.item-quantity button {
+    background: none;
+    border: none;
+    color: var(--cart-text);
+    cursor: pointer;
+    font-size: 1.05rem;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.item-quantity button:hover {
+    opacity: 0.75;
+}
+
+.item-quantity span {
+    font-size: 0.95rem;
+    color: var(--cart-text);
+}
+
+/* Columna derecha: Subtotal del ítem + Botón Eliminar */
+.item-right-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    height: 100%;
+    min-height: 135px;
+    position: relative;
+}
+
+.item-subtotal {
+    margin-top: 44px;
+    align-self: flex-start;
+    padding-left: 30px;
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--cart-text);
+}
+
+.item-actions {
+    position: relative;
+    align-self: flex-end;
+}
+
+.btn-eliminar {
+    background: transparent;
+    color: var(--cart-text);
+    border: 1px solid var(--cart-control-border);
+    padding: 6px 46px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.btn-eliminar:hover {
+    border-color: var(--cart-text);
+    background-color: var(--cart-btn-hover-bg);
+}
+
+/* ==========================================
+   POPUP DE CONFIRMACIÓN "¿Eliminar este producto?"
+   ========================================== */
+.delete-popover {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 10px);
+    background-color: var(--cart-popover-bg);
+    border: 1px solid var(--cart-popover-border);
+    border-radius: 6px;
+    padding: 18px 22px;
+    min-width: 245px;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    z-index: 50;
+}
+
+.delete-popover p {
+    margin: 0 0 18px 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--cart-text);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-confirm-yes,
+.btn-confirm-no {
+    padding: 4px 18px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--cart-text);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-confirm-yes {
+    border: 1px solid #2b6cb0;
+}
+
+.btn-confirm-yes:hover {
+    background-color: rgba(43, 108, 176, 0.25);
+}
+
+.btn-confirm-no {
+    border: 1px solid #c9082a;
+}
+
+.btn-confirm-no:hover {
+    background-color: rgba(201, 8, 42, 0.25);
+}
+
+/* ==========================================
+   RESUMEN (SUBTOTAL, ENVÍO, DESCUENTOS)
+   ========================================== */
+.cart-summary-section {
+    width: 100%;
+    border-bottom: 1px solid var(--cart-border);
+}
+
+.cart-summary {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 26px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.summary-row {
+    width: 340px;
+    margin-left: 41%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.25rem;
+    color: var(--cart-text);
+}
+
+/* ==========================================
+   TOTAL Y BOTONES (LIMPIAR / CHECK OUT)
+   ========================================== */
+.cart-total-section {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 28px 28px 16px;
+}
+
+.cart-total {
+    width: 350px;
+    margin-left: 41%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+}
+
+.cart-total h2 {
+    margin: 0;
+    font-size: 2.1rem;
+    font-weight: 400;
+    color: var(--cart-text);
+}
+
+.cart-buttons {
+    width: 380px;
+    margin-left: 39%;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.btn-cart-action {
+    flex: 1;
+    min-width: 160px;
+    padding: 15px 28px;
+    background: transparent;
+    color: var(--cart-text);
+    border: 1px solid var(--cart-control-border);
+    border-radius: 8px;
+    font-size: 1rem;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.btn-cart-action:hover {
+    border-color: var(--cart-text);
+    background-color: var(--cart-btn-hover-bg);
+}
+
+/* ==========================================
+   ESTADOS VACÍO / SIN RESULTADOS / CHECKOUT
+   ========================================== */
+.cart-empty-state,
+.cart-no-results,
+.cart-checkout-banner {
+    max-width: 680px;
+    margin: 40px auto;
+    padding: 36px 24px;
+    text-align: center;
+}
+
+.cart-empty-state h2,
+.cart-checkout-banner h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.75rem;
+    font-weight: 500;
+    color: var(--cart-text);
+}
+
+.cart-empty-state p,
+.cart-no-results p,
+.cart-checkout-banner p {
+    color: var(--cart-text-muted);
+    margin: 0 0 24px 0;
+}
+
+.cart-empty-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.cart-empty-actions .btn-cart-action {
+    flex: 0 1 auto;
+}
+
+/* ==========================================
+   NEWSLETTER Y FOOTER INFERIOR
+   ========================================== */
+.cart-bottom-sections {
+    width: 100%;
+    background-color: var(--cart-bg);
+    padding: 0 14px 20px;
+    transition: background-color 0.4s ease;
+}
+
+.cart-newsletter-band {
+    background-color: #ffffff;
+    padding: 24px 0;
+    border-radius: 2px 2px 0 0;
+}
+
+.cart-newsletter-band .nba-newsletter {
+    margin: 0 4%;
+}
+
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+@media (max-width: 860px) {
+    .cart-item {
+        grid-template-columns: 120px 1fr;
+        gap: 18px;
+    }
+
+    .item-quantity-wrapper {
+        justify-content: flex-start;
+    }
+
+    .item-right-column {
+        min-height: auto;
+        align-items: flex-end;
+        gap: 12px;
+    }
+
+    .item-subtotal {
+        margin-top: 0;
+        align-self: flex-end;
+        padding-left: 0;
+    }
+
+    .summary-row,
+    .cart-total,
+    .cart-buttons {
+        width: 100%;
+        margin-left: 0;
+    }
+
+    .cart-search {
+        margin-right: 0;
+    }
+}
