@@ -1,28 +1,36 @@
 
-
 import React, { useState } from 'react';
+
 import {
   Routes,
   Route,
   Link,
-  Navigate,
-  useLocation
+  Navigate
 } from 'react-router-dom';
 
+// PÁGINAS
 import Home from './pages/Home';
 import Carrito from './pages/Carrito';
+import MisPedidos from './pages/MisPedidos';
+
+// COMPONENTES
 import ProductList from './components/ProductList';
 import ProductDetail from './components/ProductDetail';
 import ProductCreate from './components/ProductCreate';
 import AuthPage from './components/AuthPage';
 import OnOff from './components/OnOff';
 
+// CONTEXTOS
 import { AuthProvider, useAuth } from './auth/AuthContext';
 import { CartProvider, useCart } from './context/CartContext';
 
+// ESTILOS
 import './App.css';
 
+// ======================================
 // COMPONENTE PRINCIPAL
+// ======================================
+
 function App() {
   const [modoActivo, setModoActivo] = useState(false);
 
@@ -110,7 +118,7 @@ function App() {
               element={<AuthPage mode="register" />}
             />
 
-            {/* CREAR PRODUCTO - SOLO ADMIN */}
+            {/* CREAR PRODUCTO - ADMIN */}
             <Route
               path="/crear"
               element={
@@ -120,7 +128,17 @@ function App() {
               }
             />
 
-            {/* CARRITO DE COMPRAS */}
+            {/* EDITAR PRODUCTO - ADMIN */}
+            <Route
+              path="/editar/:id"
+              element={
+                <AdminRoute>
+                  <ProductCreate />
+                </AdminRoute>
+              }
+            />
+
+            {/* CARRITO */}
             <Route
               path="/carrito"
               element={
@@ -144,6 +162,30 @@ function App() {
               }
             />
 
+            {/* MIS PEDIDOS - USUARIO AUTENTICADO */}
+            <Route
+              path="/mis-pedidos"
+              element={
+                <ProtectedRoute>
+                  <header className="header">
+                    <Link
+                      to="/"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <h1>Tienda NBA</h1>
+                    </Link>
+
+                    <HeaderActions
+                      modoActivo={modoActivo}
+                      onToggleColor={handleToggleColor}
+                    />
+                  </header>
+
+                  <MisPedidos />
+                </ProtectedRoute>
+              }
+            />
+
           </Routes>
         </div>
       </CartProvider>
@@ -151,11 +193,12 @@ function App() {
   );
 }
 
+// ======================================
 // NAVEGACIÓN SUPERIOR
+// ======================================
+
 function HeaderActions({ modoActivo, onToggleColor }) {
   const { session, logout } = useAuth();
-
-  // Obtener cantidad de productos del carrito
   const { cantidadTotal } = useCart();
 
   return (
@@ -164,8 +207,11 @@ function HeaderActions({ modoActivo, onToggleColor }) {
       aria-label="Navegación de cuenta"
     >
 
-      {/* MODO OSCURO */}
-      <OnOff activo={modoActivo} onToggle={onToggleColor} />
+      {/* MODO CLARO / OSCURO */}
+      <OnOff
+        activo={modoActivo}
+        onToggle={onToggleColor}
+      />
 
       {/* CATÁLOGO */}
       <Link
@@ -175,13 +221,23 @@ function HeaderActions({ modoActivo, onToggleColor }) {
         Catálogo
       </Link>
 
-      {/* CARRITO CON CONTADOR */}
+      {/* CARRITO */}
       <Link
         className="header-link"
         to="/carrito"
       >
         🛒 Carrito ({cantidadTotal})
       </Link>
+
+      {/* MIS PEDIDOS - USUARIOS AUTENTICADOS */}
+      {session && (
+        <Link
+          className="header-link"
+          to="/mis-pedidos"
+        >
+          📦 Mis pedidos
+        </Link>
+      )}
 
       {/* OPCIONES DEL ADMINISTRADOR */}
       {session?.role === 'ADMIN' && (
@@ -225,28 +281,14 @@ function HeaderActions({ modoActivo, onToggleColor }) {
           </Link>
         </>
       )}
-
     </nav>
   );
 }
 
-// RUTAS PROTEGIDAS
-function PrivateRoute({ children }) {
-  const { session } = useAuth();
-  const location = useLocation();
-
-  return session
-    ? children
-    : (
-      <Navigate
-        to="/login"
-        state={{ from: location.pathname }}
-        replace
-      />
-    );
-}
-
+// ======================================
 // RUTAS SOLO PARA ADMINISTRADORES
+// ======================================
+
 function AdminRoute({ children }) {
   const { session } = useAuth();
 
@@ -258,6 +300,18 @@ function AdminRoute({ children }) {
         replace
       />
     );
+}
+
+// ======================================
+// RUTAS PARA USUARIOS AUTENTICADOS
+// ======================================
+
+function ProtectedRoute({ children }) {
+  const { session } = useAuth();
+
+  return session
+    ? children
+    : <Navigate to="/login" replace />;
 }
 
 export default App;

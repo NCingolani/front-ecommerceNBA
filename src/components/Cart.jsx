@@ -25,6 +25,9 @@ const Cart = () => {
     const [navSearch, setNavSearch] = useState('');
     const [checkoutSuccess, setCheckoutSuccess] = useState(false);
     const [failedImages, setFailedImages] = useState({});
+    const [checkoutLoading, setCheckoutLoading] = useState(false);
+    const [checkoutError, setCheckoutError] = useState('');
+    
 
     // Filtrado por búsqueda dentro del carrito
     const filteredItems = cartItems.filter((item) => {
@@ -67,11 +70,48 @@ const Cart = () => {
         }
     };
 
-    const handleCheckout = () => {
-        if (cartItems.length === 0) return;
-        dispatch(clearCart());
-        setCheckoutSuccess(true);
+   
+    const handleCheckout = async () => {
+        if (cartItems.length === 0 || checkoutLoading) return;
+
+        setCheckoutLoading(true);
+        setCheckoutError('');
+
+        try {
+            const token = localStorage.getItem('token');
+
+            const response = await fetch('/api/pedidos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token
+                        ? { Authorization: `Bearer ${token}` }
+                        : {})
+                },
+                body: JSON.stringify({
+                    productos: cartItems.map((item) => ({
+                        productoId: item.id,
+                        cantidad: Number(item.cantidad)
+                    }))
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(
+                    `No se pudo registrar la compra. HTTP ${response.status}`
+                );
+            }
+
+            dispatch(clearCart());
+            setCheckoutSuccess(true);
+
+        } catch (error) {
+            setCheckoutError(error.message);
+        } finally {
+            setCheckoutLoading(false);
+        }
     };
+
 
     const handleNavSearchSubmit = (e) => {
         e.preventDefault();

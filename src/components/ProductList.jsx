@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useCart } from '../context/CartContext';
 import ProductCard from './ProductCard';
 import './ProductList.css';
-import { useCart } from '../context/CartContext';
 
+// NORMALIZAR TEXTO
 const normalizar = (valor = '') =>
   String(valor ?? '')
     .trim()
@@ -12,13 +14,15 @@ const normalizar = (valor = '') =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLocaleLowerCase('es');
 
+// CATEGORÍAS
 const categorias = [
-  'Camisetas',
+  'Jersey',
   'Shorts',
   'Zapatillas',
   'Accesorios'
 ];
 
+// EQUIPOS
 const equipos = [
   'Lakers',
   'Warriors',
@@ -27,7 +31,25 @@ const equipos = [
   'Heat'
 ];
 
-// Identifica el equipo desde el nombre
+// NORMALIZAR NOMBRE DE CATEGORÍA
+const normalizarCategoria = (valor) => {
+  const categoria = normalizar(valor);
+
+  if (
+    categoria === 'camiseta' ||
+    categoria === 'camisetas' ||
+    categoria === 'jersey' ||
+    categoria === 'jerseys'
+  ) {
+    return 'Jersey';
+  }
+
+  return categorias.find(
+    (cat) => normalizar(cat) === categoria
+  ) || valor;
+};
+
+// IDENTIFICAR EQUIPO
 const obtenerEquipo = (producto) => {
   const nombre = normalizar(producto.nombre);
 
@@ -36,59 +58,72 @@ const obtenerEquipo = (producto) => {
   ) || '';
 };
 
-// Identifica la categoría del producto
+// IDENTIFICAR CATEGORÍA
 const obtenerCategoria = (producto) => {
   const categoria = normalizar(producto.nombreCategoria);
 
+  // Priorizar la categoría enviada por el backend
   if (categoria) {
-    const encontrada = categorias.find((cat) =>
-      normalizar(cat) === categoria
-    );
-
-    return encontrada || producto.nombreCategoria;
+    return normalizarCategoria(producto.nombreCategoria);
   }
 
-  // Respaldo por si el backend no envía categoría
+  // Respaldo si el backend no envía categoría
   const nombre = normalizar(producto.nombre);
 
-  if (nombre.includes('jersey') ||
-    nombre.includes('camiseta')) return 'Camisetas';
+  if (
+    nombre.includes('jersey') ||
+    nombre.includes('camiseta')
+  ) {
+    return 'Jersey';
+  }
 
-  if (nombre.includes('short')) return 'Shorts';
+  if (nombre.includes('short')) {
+    return 'Shorts';
+  }
 
-  if (nombre.includes('zapatilla')) return 'Zapatillas';
+  if (nombre.includes('zapatilla')) {
+    return 'Zapatillas';
+  }
 
-  if (nombre.includes('gorra') ||
-    nombre.includes('pelota')) return 'Accesorios';
+  if (
+    nombre.includes('gorra') ||
+    nombre.includes('pelota')
+  ) {
+    return 'Accesorios';
+  }
 
   return '';
 };
 
+// COMPONENTE PRINCIPAL
 const ProductList = () => {
   const { agregarAlCarrito } = useCart();
   const { session } = useAuth();
   const esAdmin = session?.role === 'ADMIN';
 
   const [searchParams] = useSearchParams();
-  const categoriaURL =
-    searchParams.get('categoria')?.trim() || '';
 
+  const categoriaURL = normalizarCategoria(
+    searchParams.get('categoria')?.trim() || ''
+  );
+
+  // PRODUCTOS
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Buscador y ordenamiento
+  // BÚSQUEDA Y ORDENAMIENTO
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState('default');
 
-  // Filtros seleccionados
+  // FILTROS SELECCIONADOS
   const [categoriasSeleccionadas, setCategorias] = useState([]);
   const [equiposSeleccionados, setEquipos] = useState([]);
 
   const [precioMin, setPrecioMin] = useState(0);
   const [precioMax, setPrecioMax] = useState(null);
 
-  // Filtros aplicados
+  // FILTROS APLICADOS
   const [filtrosAplicados, setFiltrosAplicados] = useState({
     categorias: [],
     equipos: [],
@@ -96,12 +131,14 @@ const ProductList = () => {
     maximo: null
   });
 
+  // OBTENER PRODUCTOS DESDE EL BACKEND
   useEffect(() => {
     fetch('/api/productos')
       .then((res) => {
         if (!res.ok) {
           throw new Error('Error al obtener productos');
         }
+
         return res.json();
       })
       .then((data) => {
@@ -110,28 +147,48 @@ const ProductList = () => {
       })
       .catch((err) => {
         console.error(err);
+
         setError(
-          'No se pudo cargar el catálogo. Intenta nuevamente más tarde.'
+          'No se pudo cargar el catálogo. Intentá nuevamente más tarde.'
         );
+
         setLoading(false);
       });
   }, []);
 
+  // ACTUALIZAR LISTADO AL ELIMINAR PRODUCTO
   const handleProductoEliminado = (idEliminado) => {
-    setProductos((prev) => prev.filter((p) => p.id !== idEliminado));
+    setProductos((prev) =>
+      prev.filter((p) => p.id !== idEliminado)
+    );
   };
 
-  // Precio máximo según los productos reales
+
+  const handleProductoActualizado = (productoActualizado) => {
+    setProductos((prev) =>
+      prev.map((producto) =>
+        producto.id === productoActualizado.id
+          ? productoActualizado
+          : producto
+      )
+    );
+  };
+
+
+  // PRECIO MÁXIMO
   const precioTope = Math.max(
     100,
     Math.ceil(
-      Math.max(...productos.map((p) => Number(p.precio) || 0), 0) / 50
+      Math.max(
+        ...productos.map((p) => Number(p.precio) || 0),
+        0
+      ) / 50
     ) * 50
   );
 
   const maxSeleccionado = precioMax ?? precioTope;
 
-  // Seleccionar y deseleccionar casillas
+  // SELECCIONAR Y DESELECCIONAR FILTROS
   const toggleFiltro = (valor, seleccionados, setter) => {
     setter(
       seleccionados.includes(valor)
@@ -140,6 +197,7 @@ const ProductList = () => {
     );
   };
 
+  // APLICAR FILTROS
   const aplicarFiltros = () => {
     setFiltrosAplicados({
       categorias: [...categoriasSeleccionadas],
@@ -149,9 +207,10 @@ const ProductList = () => {
     });
   };
 
+  // LIMPIAR FILTROS
   const limpiarFiltros = () => {
     setCategorias([]);
-    setEquipos([]);
+    setEquiposSeleccionados([]);
     setPrecioMin(0);
     setPrecioMax(null);
 
@@ -163,33 +222,41 @@ const ProductList = () => {
     });
   };
 
-  // Filtrado combinado
+  // FILTRADO COMBINADO
   const productosFiltrados = productos.filter((producto) => {
     const categoriaProducto = obtenerCategoria(producto);
     const equipoProducto = obtenerEquipo(producto);
     const precioProducto = Number(producto.precio) || 0;
 
+    // FILTRO POR URL
     const coincideURL =
       !categoriaURL ||
-      normalizar(categoriaProducto) === normalizar(categoriaURL);
+      normalizar(categoriaProducto) ===
+        normalizar(categoriaURL);
 
+    // BÚSQUEDA LOCAL TEMPORAL
+    // Pendiente: conectar con endpoint de búsqueda
     const coincideBusqueda = normalizar(producto.nombre)
       .includes(normalizar(busqueda));
 
+    // FILTRO POR CATEGORÍA
     const coincideCategoria =
       filtrosAplicados.categorias.length === 0 ||
       filtrosAplicados.categorias.some(
-        (cat) => normalizar(cat) === normalizar(categoriaProducto)
+        (cat) =>
+          normalizar(cat) === normalizar(categoriaProducto)
       );
 
+    // FILTRO POR EQUIPO
     const coincideEquipo =
       filtrosAplicados.equipos.length === 0 ||
       filtrosAplicados.equipos.includes(equipoProducto);
 
+    // FILTRO POR PRECIO
     const coincidePrecio =
       precioProducto >= filtrosAplicados.minimo &&
       precioProducto <=
-      (filtrosAplicados.maximo ?? precioTope);
+        (filtrosAplicados.maximo ?? precioTope);
 
     return (
       coincideURL &&
@@ -200,7 +267,7 @@ const ProductList = () => {
     );
   });
 
-  // Ordenamiento
+  // ORDENAMIENTO
   const productosOrdenados = [...productosFiltrados];
 
   if (orden === 'menor') {
@@ -217,16 +284,29 @@ const ProductList = () => {
 
   if (orden === 'nombre') {
     productosOrdenados.sort((a, b) =>
-      String(a.nombre).localeCompare(String(b.nombre), 'es')
+      String(a.nombre).localeCompare(
+        String(b.nombre),
+        'es'
+      )
     );
   }
 
+  // ESTADO DE CARGA
   if (loading) {
-    return <p className="catalog-message">Cargando catálogo...</p>;
+    return (
+      <p className="catalog-message">
+        Cargando catálogo...
+      </p>
+    );
   }
 
+  // ESTADO DE ERROR
   if (error) {
-    return <p className="catalog-message" role="alert">{error}</p>;
+    return (
+      <p className="catalog-message" role="alert">
+        {error}
+      </p>
+    );
   }
 
   return (
@@ -239,20 +319,34 @@ const ProductList = () => {
           <h1>{categoriaURL || 'Todos los productos'}</h1>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '12px',
+            alignItems: 'center'
+          }}
+        >
           {esAdmin && (
-            <Link to="/crear" className="btn-onoff activo" style={{ textDecoration: 'none' }}>
+            <Link
+              to="/crear"
+              className="btn-onoff activo"
+              style={{ textDecoration: 'none' }}
+            >
               + Crear producto
             </Link>
           )}
+
           {categoriaURL && (
-            <Link to="/productos">Ver todos los productos</Link>
+            <Link to="/productos">
+              Ver todos los productos
+            </Link>
           )}
         </div>
       </div>
 
-      {/* BUSCADOR Y ORDEN */}
+      {/* BUSCADOR Y ORDENAMIENTO */}
       <div className="catalog-toolbar">
+
         <div className="catalog-search">
           <input
             type="search"
@@ -273,12 +367,13 @@ const ProductList = () => {
             <option value="nombre">Nombre A-Z</option>
           </select>
         </div>
+
       </div>
 
       {/* CONTENEDOR DEL CATÁLOGO */}
       <div className="catalog-layout">
 
-        {/* PANEL LATERAL */}
+        {/* PANEL LATERAL DE FILTROS */}
         <aside className="catalog-sidebar">
           <h2>Filtros</h2>
 
@@ -294,7 +389,10 @@ const ProductList = () => {
               ).length;
 
               return (
-                <label key={cat} className="filter-option">
+                <label
+                  key={cat}
+                  className="filter-option"
+                >
                   <input
                     type="checkbox"
                     checked={categoriasSeleccionadas.includes(cat)}
@@ -306,7 +404,10 @@ const ProductList = () => {
                       )
                     }
                   />
-                  <span>{cat} ({cantidad})</span>
+
+                  <span>
+                    {cat} ({cantidad})
+                  </span>
                 </label>
               );
             })}
@@ -322,7 +423,10 @@ const ProductList = () => {
               ).length;
 
               return (
-                <label key={equipo} className="filter-option">
+                <label
+                  key={equipo}
+                  className="filter-option"
+                >
                   <input
                     type="checkbox"
                     checked={equiposSeleccionados.includes(equipo)}
@@ -330,11 +434,14 @@ const ProductList = () => {
                       toggleFiltro(
                         equipo,
                         equiposSeleccionados,
-                        setEquipos
+                        setEquiposSeleccionados
                       )
                     }
                   />
-                  <span>{equipo} ({cantidad})</span>
+
+                  <span>
+                    {equipo} ({cantidad})
+                  </span>
                 </label>
               );
             })}
@@ -357,7 +464,10 @@ const ProductList = () => {
               value={precioMin}
               onChange={(e) => {
                 const valor = Number(e.target.value);
-                setPrecioMin(Math.min(valor, maxSeleccionado));
+
+                setPrecioMin(
+                  Math.min(valor, maxSeleccionado)
+                );
               }}
             />
 
@@ -374,13 +484,17 @@ const ProductList = () => {
               value={maxSeleccionado}
               onChange={(e) => {
                 const valor = Number(e.target.value);
-                setPrecioMax(Math.max(valor, precioMin));
+
+                setPrecioMax(
+                  Math.max(valor, precioMin)
+                );
               }}
             />
           </section>
 
-          {/* BOTONES */}
+          {/* BOTONES DE FILTROS */}
           <button
+            type="button"
             className="filter-apply"
             onClick={aplicarFiltros}
           >
@@ -388,15 +502,18 @@ const ProductList = () => {
           </button>
 
           <button
+            type="button"
             className="filter-clear"
             onClick={limpiarFiltros}
           >
             Limpiar filtros
           </button>
+
         </aside>
 
-        {/* PRODUCTOS */}
+        {/* LISTADO DE PRODUCTOS */}
         <section className="catalog-products">
+
           <p className="catalog-results">
             {productosOrdenados.length}
             {productosOrdenados.length === 1
@@ -415,11 +532,13 @@ const ProductList = () => {
             ))}
           </div>
 
+          {/* SIN RESULTADOS */}
           {productosOrdenados.length === 0 && (
             <p className="catalog-empty">
               No encontramos productos con esos filtros.
             </p>
           )}
+
         </section>
 
       </div>

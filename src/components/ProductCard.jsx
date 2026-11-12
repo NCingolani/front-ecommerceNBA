@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
-// Imágenes guardadas en public/Images/Productos
+// IMÁGENES PREDEFINIDAS
 const imagenesProductos = {
   'Jersey LeBron James #23 Lakers':
     '/Images/Productos/JerseyLeBronJames.jpg',
@@ -17,33 +17,334 @@ const imagenesProductos = {
     '/Images/Productos/ZapatillasNikeLuka2.jpg'
 };
 
-const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
+const CATEGORIAS = [
+  'Jersey',
+  'Shorts',
+  'Zapatillas',
+  'Accesorios'
+];
+
+const TALLES = [
+  'S', 'M', 'L', 'XL', 'XXL',
+  '40', '42', '44', 'Único'
+];
+
+const normalizarCategoria = (categoria) => {
+  if (['Camisetas', 'Camiseta', 'Jerseys'].includes(categoria)) {
+    return 'Jersey';
+  }
+
+  return categoria || 'Jersey';
+};
+
+const crearFormulario = (producto) => ({
+  nombre: producto.nombre || '',
+  precio: String(producto.precio ?? ''),
+  descripcion: producto.descripcion || '',
+  nombreCategoria: normalizarCategoria(
+    producto.nombreCategoria
+  ),
+  talle: producto.talle || 'L',
+  stock: String(producto.stock ?? 0),
+  imagen: producto.imagen || '',
+  etiquetas: (producto.etiquetas || []).join(', ')
+});
+
+const ProductCard = ({
+  producto,
+  onAddToCart,
+  onEliminar,
+  onActualizar
+}) => {
+
   const { session } = useAuth();
   const esAdmin = session?.role === 'ADMIN';
 
-  const precio = Number(producto.precio);
+  // ESTADOS DE ELIMINACIÓN
+  const [confirmarEliminar, setConfirmarEliminar] =
+    useState(false);
 
-  // Buscar la imagen local según el nombre
-  const imagenLocal = imagenesProductos[producto.nombre?.trim()];
+  const [eliminando, setEliminando] = useState(false);
 
-  // Priorizar la imagen del frontend
-  const imagen = imagenLocal || producto.imagen;
+  // ESTADOS DE EDICIÓN
+  const [editando, setEditando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
 
-  // Eliminar producto (solo administrador)
-  const handleDelete = async () => {
-    if (!window.confirm(`¿Eliminar "${producto.nombre}"?`)) {
+  const [formulario, setFormulario] = useState(
+    () => crearFormulario(producto)
+  );
+
+  const [archivoImagen, setArchivoImagen] = useState(null);
+  const [previewImagen, setPreviewImagen] = useState('');
+
+  // MENSAJES
+  const [mensajeError, setMensajeError] = useState('');
+  const [mensajeExito, setMensajeExito] = useState('');
+
+  // IMAGEN ACTUAL
+  // Priorizar la URL guardada en MySQL.
+  const imagenActual =
+    producto.imagen ||
+    imagenesProductos[producto.nombre?.trim()] ||
+    '';
+
+  // VISTA PREVIA DE ARCHIVO LOCAL
+  useEffect(() => {
+    if (!archivoImagen) {
+      setPreviewImagen('');
       return;
     }
 
+    const urlTemporal = URL.createObjectURL(archivoImagen);
+
+    setPreviewImagen(urlTemporal);
+
+    return () => {
+      URL.revokeObjectURL(urlTemporal);
+    };
+  }, [archivoImagen]);
+
+  const imagenEdicion =
+    previewImagen ||
+    formulario.imagen ||
+    imagenActual;
+
+  // ACTUALIZAR CAMPOS DEL FORMULARIO
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormulario((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // ABRIR FORMULARIO DE EDICIÓN
+  const abrirEdicion = () => {
+    setFormulario(crearFormulario(producto));
+    setArchivoImagen(null);
+    setMensajeError('');
+    setMensajeExito('');
+    setConfirmarEliminar(false);
+    setEditando(true);
+  };
+
+  // CANCELAR EDICIÓN
+  const cancelarEdicion = () => {
+    setEditando(false);
+    setFormulario(crearFormulario(producto));
+    setArchivoImagen(null);
+    setMensajeError('');
+  };
+
+  // SELECCIONAR NUEVA IMAGEN
+  const handleImagenChange = (e) => {
+    const archivo = e.target.files?.[0];
+
+    if (!archivo) {
+      setArchivoImagen(null);
+      return;
+    }
+
+    const tiposPermitidos = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
+
+    if (!tiposPermitidos.includes(archivo.type)) {
+      setMensajeError(
+        'Solo se permiten imágenes JPG, PNG o WebP.'
+      );
+      e.target.value = '';
+      return;
+    }
+
+    if (archivo.size > 5 * 1024 * 1024) {
+      setMensajeError(
+        'La imagen no puede superar los 5 MB.'
+      );
+      e.target.value = '';
+      return;
+    }
+
+    setMensajeError('');
+    setArchivoImagen(archivo);
+  };
+
+  // GUARDAR MODIFICACIONES
+  const handleGuardarCambios = async (e) => {
+    e.preventDefault();
+
+    if (!esAdmin || guardando) return;
+
+    setGuardando(true);
+    setMensajeError('');
+    setMensajeExito('');
+
+    const token =
+      session?.token || localStorage.getItem('token');
+
     try {
-      const res = await fetch(`/api/productos/${producto.id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${
-            session?.token || localStorage.getItem('token')
-          }`
+
+      if (!token) {
+        throw new Error(
+          'Iniciá sesión como administrador.'
+        );
+      }
+
+      let urlImagen = formulario.imagen;
+
+      // SUBIR NUEVA IMAGEN SI SE SELECCIONÓ ARCHIVO
+      if (archivoImagen) {
+
+        const formData = new FormData();
+        formData.append('archivo', archivoImagen);
+
+        const respuestaImagen = await fetch(
+          '/api/productos/imagen',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`
+            },
+            body: formData
+          }
+        );
+
+        if (!respuestaImagen.ok) {
+          throw new Error(
+            `Error al subir imagen: ${respuestaImagen.status}`
+          );
         }
-      });
+
+        const resultadoImagen =
+          await respuestaImagen.json();
+
+        if (!resultadoImagen.url) {
+          throw new Error(
+            'El servidor no devolvió la URL de la imagen.'
+          );
+        }
+
+        urlImagen = resultadoImagen.url;
+      }
+
+      if (!urlImagen) {
+        throw new Error(
+          'El producto debe tener una imagen.'
+        );
+      }
+
+      const precioNumerico = Number(formulario.precio);
+      const stockNumerico = Number(formulario.stock);
+
+      if (
+        !formulario.nombre.trim() ||
+        formulario.precio.trim() === '' ||
+        !Number.isFinite(precioNumerico) ||
+        precioNumerico < 0
+      ) {
+        throw new Error(
+          'Ingresá un nombre y un precio válido.'
+        );
+      }
+
+      if (
+        formulario.stock.trim() === '' ||
+        !Number.isInteger(stockNumerico) ||
+        stockNumerico < 0
+      ) {
+        throw new Error(
+          'Ingresá un stock válido.'
+        );
+      }
+
+      // CONSTRUIR OBJETO COMPLETO
+      const productoActualizado = {
+        nombre: formulario.nombre.trim(),
+        precio: precioNumerico,
+        descripcion: formulario.descripcion.trim(),
+        nombreCategoria: formulario.nombreCategoria,
+        talle: formulario.talle,
+        stock: stockNumerico,
+        imagen: urlImagen,
+        etiquetas: formulario.etiquetas
+          .split(',')
+          .map((etiqueta) => etiqueta.trim())
+          .filter(Boolean)
+      };
+
+      // PETICIÓN PUT AL BACKEND
+      const respuesta = await fetch(
+        `/api/productos/${producto.id}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(productoActualizado)
+        }
+      );
+
+      if (!respuesta.ok) {
+        throw new Error(
+          `Error al modificar producto: ${respuesta.status}`
+        );
+      }
+
+      const productoGuardado = await respuesta.json();
+
+      // ACTUALIZAR EL CATÁLOGO SIN RECARGAR
+      if (onActualizar) {
+        onActualizar(productoGuardado);
+      }
+
+      setArchivoImagen(null);
+      setEditando(false);
+
+      setMensajeExito(
+        '¡Producto actualizado correctamente!'
+      );
+
+    } catch (error) {
+      setMensajeError(error.message);
+
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  // ELIMINAR PRODUCTO
+  const handleDelete = async () => {
+
+    if (!esAdmin || eliminando) return;
+
+    setEliminando(true);
+    setMensajeError('');
+    setMensajeExito('');
+
+    try {
+
+      const token =
+        session?.token || localStorage.getItem('token');
+
+      if (!token) {
+        throw new Error(
+          'Iniciá sesión como administrador.'
+        );
+      }
+
+      const res = await fetch(
+        `/api/productos/${producto.id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
 
       if (!res.ok) {
         throw new Error(
@@ -51,15 +352,22 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
         );
       }
 
+      setConfirmarEliminar(false);
+
       if (onEliminar) {
         onEliminar(producto.id);
       }
+
     } catch (err) {
-      alert(err.message);
+      setMensajeError(err.message);
+      setConfirmarEliminar(false);
+
+    } finally {
+      setEliminando(false);
     }
   };
 
-  // Agregar producto al carrito
+  // AÑADIR AL CARRITO
   const handleAddToCart = () => {
     if (typeof onAddToCart === 'function') {
       onAddToCart(producto);
@@ -68,6 +376,19 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
         'El carrito todavía no está conectado a ProductCard.'
       );
     }
+  };
+
+  // FORMATO DE PRECIO
+  const formatearPrecio = (valor) => {
+    const numero = Number(valor);
+
+    return Number.isFinite(numero)
+      ? new Intl.NumberFormat('es-AR', {
+          style: 'currency',
+          currency: 'ARS',
+          maximumFractionDigits: 0
+        }).format(numero)
+      : 'Precio no disponible';
   };
 
   return (
@@ -81,11 +402,12 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
       }}
     >
 
-      {/* IMAGEN DEL PRODUCTO */}
+      {/* IMAGEN */}
       <div className="product-image-container">
-        {imagen ? (
+
+        {imagenActual ? (
           <img
-            src={imagen}
+            src={imagenActual}
             alt={producto.nombre}
             className="product-image"
             style={{
@@ -103,9 +425,10 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
             aria-label={`Sin imagen: ${producto.nombre}`}
           />
         )}
+
       </div>
 
-      {/* NOMBRE DEL PRODUCTO */}
+      {/* NOMBRE */}
       <h3
         className="product-name"
         style={{ marginTop: 0 }}
@@ -127,14 +450,231 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
           marginBottom: '15px'
         }}
       >
-        {Number.isFinite(precio)
-          ? new Intl.NumberFormat('es-AR', {
-              style: 'currency',
-              currency: 'ARS',
-              maximumFractionDigits: 0
-            }).format(precio)
-          : 'Precio no disponible'}
+        {formatearPrecio(producto.precio)}
       </p>
+
+      {/* MENSAJE DE ÉXITO */}
+      {mensajeExito && (
+        <p
+          role="status"
+          style={{
+            color: '#15803d',
+            fontWeight: 'bold',
+            fontSize: '0.85rem'
+          }}
+        >
+          {mensajeExito}
+        </p>
+      )}
+
+      {/* MENSAJE DE ERROR */}
+      {mensajeError && (
+        <p
+          role="alert"
+          style={{
+            color: '#dc2626',
+            fontWeight: 'bold',
+            fontSize: '0.85rem'
+          }}
+        >
+          {mensajeError}
+        </p>
+      )}
+
+      {/* FORMULARIO DE EDICIÓN */}
+      {esAdmin && editando && (
+
+        <form
+          onSubmit={handleGuardarCambios}
+          style={{
+            backgroundColor: '#f1f5f9',
+            border: '1px solid #cbd5e1',
+            borderRadius: '10px',
+            padding: '12px',
+            marginBottom: '15px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            color: '#0f172a'
+          }}
+        >
+
+          <h4 style={{ margin: 0 }}>
+            ✏️ Editar producto
+          </h4>
+
+          {/* NOMBRE */}
+          <label style={estilos.label}>
+            Nombre
+            <input
+              type="text"
+              name="nombre"
+              value={formulario.nombre}
+              onChange={handleChange}
+              required
+              style={estilos.input}
+            />
+          </label>
+
+          {/* PRECIO */}
+          <label style={estilos.label}>
+            Precio (ARS)
+            <input
+              type="number"
+              name="precio"
+              min="0"
+              step="any"
+              value={formulario.precio}
+              onChange={handleChange}
+              required
+              style={estilos.input}
+            />
+          </label>
+
+          {/* DESCRIPCIÓN */}
+          <label style={estilos.label}>
+            Descripción
+            <textarea
+              name="descripcion"
+              value={formulario.descripcion}
+              onChange={handleChange}
+              rows="3"
+              style={estilos.input}
+            />
+          </label>
+
+          {/* CATEGORÍA */}
+          <label style={estilos.label}>
+            Categoría
+            <select
+              name="nombreCategoria"
+              value={formulario.nombreCategoria}
+              onChange={handleChange}
+              style={estilos.input}
+            >
+              {CATEGORIAS.map((categoria) => (
+                <option
+                  key={categoria}
+                  value={categoria}
+                >
+                  {categoria}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {/* TALLE */}
+          <label style={estilos.label}>
+            Talle
+            <select
+              name="talle"
+              value={formulario.talle}
+              onChange={handleChange}
+              style={estilos.input}
+            >
+              {TALLES.map((talle) => (
+                <option
+                  key={talle}
+                  value={talle}
+                >
+                  {talle}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {/* STOCK */}
+          <label style={estilos.label}>
+            Stock disponible
+            <input
+              type="number"
+              name="stock"
+              min="0"
+              step="1"
+              value={formulario.stock}
+              onChange={handleChange}
+              required
+              style={estilos.input}
+            />
+          </label>
+
+          {/* ETIQUETAS */}
+          <label style={estilos.label}>
+            Etiquetas separadas por coma
+            <input
+              type="text"
+              name="etiquetas"
+              value={formulario.etiquetas}
+              onChange={handleChange}
+              style={estilos.input}
+            />
+          </label>
+
+          {/* IMAGEN ACTUAL */}
+          <label style={estilos.label}>
+            Ruta o URL de imagen
+            <input
+              type="text"
+              name="imagen"
+              value={formulario.imagen}
+              onChange={handleChange}
+              style={estilos.input}
+              placeholder="/uploads/imagen.jpg"
+            />
+          </label>
+
+          {/* SUBIR NUEVA IMAGEN */}
+          <label style={estilos.label}>
+            O seleccionar nueva imagen
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImagenChange}
+              style={estilos.input}
+            />
+          </label>
+
+          {/* VISTA PREVIA */}
+          {imagenEdicion && (
+            <img
+              src={imagenEdicion}
+              alt="Vista previa de edición"
+              style={{
+                width: '100%',
+                height: '150px',
+                objectFit: 'contain',
+                backgroundColor: '#ffffff',
+                borderRadius: '8px'
+              }}
+            />
+          )}
+
+          {/* GUARDAR */}
+          <button
+            type="submit"
+            disabled={guardando}
+            style={{
+              ...estilos.botonGuardar,
+              opacity: guardando ? 0.6 : 1
+            }}
+          >
+            {guardando
+              ? 'Guardando...'
+              : '✓ Guardar cambios'}
+          </button>
+
+          {/* CANCELAR */}
+          <button
+            type="button"
+            onClick={cancelarEdicion}
+            disabled={guardando}
+            style={estilos.botonCancelar}
+          >
+            Cancelar
+          </button>
+
+        </form>
+      )}
 
       {/* BOTONES DEL PRODUCTO */}
       <div
@@ -148,7 +688,7 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
         }}
       >
 
-        {/* BOTÓN VER DETALLES */}
+        {/* VER DETALLES */}
         <Link
           to={`/producto/${producto.id}`}
           className="btn-onoff"
@@ -166,7 +706,7 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
           Ver detalles
         </Link>
 
-        {/* BOTÓN AÑADIR AL CARRITO */}
+        {/* AÑADIR AL CARRITO */}
         <button
           className="btn-onoff"
           type="button"
@@ -181,21 +721,88 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
           🛒 Añadir al carrito
         </button>
 
-        {/* BOTÓN ELIMINAR (SOLO ADMIN) */}
+        
+        
+        {/* EDITAR PRODUCTO - SOLO ADMIN */}
         {esAdmin && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="btn-onoff activo"
+          <Link
+            to={`/editar/${producto.id}`}
+            className="btn-onoff"
             style={{
               width: '100%',
               minHeight: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               boxSizing: 'border-box',
-              cursor: 'pointer'
+              textDecoration: 'none',
+              backgroundColor: '#1D428A',
+              color: '#ffffff',
+              borderRadius: '25px',
+              fontWeight: 'bold'
             }}
           >
-            🗑 Eliminar
-          </button>
+            ✏️ Editar producto
+          </Link>
+        )}
+
+
+        {/* ELIMINAR SOLO ADMIN */}
+        {esAdmin && (
+          <div>
+            <button
+              type="button"
+              onClick={() => {
+                setMensajeError('');
+                setConfirmarEliminar(true);
+              }}
+              disabled={eliminando || guardando}
+              className="btn-onoff activo"
+              style={{
+                width: '100%',
+                minHeight: '44px'
+              }}
+            >
+              🗑 Eliminar
+            </button>
+
+            {confirmarEliminar && (
+              <div
+                className="confirmar-eliminar"
+                style={{
+                  padding: '10px',
+                  borderRadius: '8px',
+                  backgroundColor: '#f1f5f9',
+                  color: '#0f172a',
+                  marginTop: '10px'
+                }}
+              >
+                <p>
+                  ¿Seguro que querés eliminar este producto?
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={eliminando}
+                >
+                  {eliminando
+                    ? 'Eliminando...'
+                    : 'Sí, eliminar'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setConfirmarEliminar(false)
+                  }
+                  disabled={eliminando}
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+          </div>
         )}
 
       </div>
@@ -203,5 +810,47 @@ const ProductCard = ({ producto, onAddToCart, onEliminar }) => {
   );
 };
 
-export default ProductCard;
+// ESTILOS DE EDICIÓN
+const estilos = {
+  label: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '5px',
+    fontSize: '0.85rem',
+    fontWeight: 'bold',
+    color: '#0f172a'
+  },
 
+  input: {
+    width: '100%',
+    padding: '10px',
+    border: '1px solid #cbd5e1',
+    borderRadius: '7px',
+    backgroundColor: '#ffffff',
+    color: '#0f172a',
+    boxSizing: 'border-box',
+    fontSize: '0.9rem'
+  },
+
+  botonGuardar: {
+    backgroundColor: '#1D428A',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '8px',
+    padding: '12px',
+    fontWeight: 'bold',
+    cursor: 'pointer'
+  },
+
+  botonCancelar: {
+    backgroundColor: '#ffffff',
+    color: '#1D428A',
+    border: '1px solid #1D428A',
+    borderRadius: '8px',
+    padding: '10px',
+    fontWeight: 'bold',
+    cursor: 'pointer'
+  }
+};
+
+export default ProductCard;
