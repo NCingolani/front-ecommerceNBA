@@ -13,8 +13,24 @@ export const CartProvider = ({ children }) => {
   const dispatch = useDispatch();
   const carrito = useSelector((store) => store.cart.items);
 
-  // Agregar productos
+  // Agregar productos validando el stock disponible
   const agregarAlCarrito = (producto) => {
+    const stockDisponible = Number(producto.stock ?? 0);
+
+    if (stockDisponible <= 0) {
+      alert(`"${producto.nombre}" no tiene stock disponible.`);
+      return;
+    }
+
+    const itemEnCarrito = carrito.find((item) => item.id === producto.id);
+    const cantidadActual = Number(itemEnCarrito?.cantidad || 0);
+    const cantidadAAgregar = Number(producto.cantidad || 1);
+
+    if (cantidadActual + cantidadAAgregar > stockDisponible) {
+      alert(`No hay suficiente stock de "${producto.nombre}". Disponibles: ${stockDisponible}.`);
+      return;
+    }
+
     dispatch(addToCart(producto));
   };
 

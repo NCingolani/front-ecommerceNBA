@@ -59,6 +59,10 @@ const ProductCard = ({
   const { session } = useAuth();
   const esAdmin = session?.role === 'ADMIN';
 
+  // STOCK DISPONIBLE
+  const stockDisponible = Number(producto.stock ?? 0);
+  const sinStock = stockDisponible <= 0;
+
   // ESTADOS DE ELIMINACIÓN
   const [confirmarEliminar, setConfirmarEliminar] =
     useState(false);
@@ -356,6 +360,11 @@ const ProductCard = ({
   };
 
   const handleAddToCart = () => {
+    if (sinStock) {
+      setMensajeError('Este producto no tiene stock disponible.');
+      return;
+    }
+
     if (typeof onAddToCart === 'function') {
       onAddToCart(producto);
     } else {
@@ -425,10 +434,23 @@ const ProductCard = ({
         style={{
           fontSize: '1.3rem',
           fontWeight: 'bold',
-          marginBottom: '15px'
+          marginBottom: '6px'
         }}
       >
         {formatearPrecio(producto.precio)}
+      </p>
+
+      {/* INDICADOR DE STOCK */}
+      <p
+        style={{
+          fontSize: '0.85rem',
+          fontWeight: 'bold',
+          marginTop: 0,
+          marginBottom: '15px',
+          color: sinStock ? '#dc2626' : '#15803d'
+        }}
+      >
+        {sinStock ? 'Sin stock' : `Stock disponible: ${stockDisponible}`}
       </p>
 
       {mensajeExito && (
@@ -460,7 +482,6 @@ const ProductCard = ({
           }}
         >
           <h4 style={{ margin: 0 }}>✏️ Editar producto</h4>
-          {/* ... (tus labels y campos de formulario se mantienen igual) ... */}
           <label style={estilos.label}>
             Nombre
             <input type="text" name="nombre" value={formulario.nombre} onChange={handleChange} required style={estilos.input} />
@@ -545,20 +566,22 @@ const ProductCard = ({
           Ver detalles
         </Link>
 
-        {/* SOLO MOSTRAMOS EL BOTON DE AÑADIR SI NO ES ADMIN */}
+        {/* SOLO MOSTRAMOS EL BOTON DE AÑADIR SI NO ES ADMIN Y BLOQUEAMOS SI NO HAY STOCK */}
         {!esAdmin && (
           <button
             className="btn-onoff"
             type="button"
+            disabled={sinStock}
             onClick={handleAddToCart}
             style={{
               width: '100%',
               minHeight: '44px',
               boxSizing: 'border-box',
-              cursor: 'pointer'
+              cursor: sinStock ? 'not-allowed' : 'pointer',
+              opacity: sinStock ? 0.5 : 1
             }}
           >
-            🛒 Añadir al carrito
+            {sinStock ? '🚫 Sin stock' : '🛒 Añadir al carrito'}
           </button>
         )}
 
