@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -82,7 +81,6 @@ const ProductCard = ({
   const [mensajeExito, setMensajeExito] = useState('');
 
   // IMAGEN ACTUAL
-  // Priorizar la URL guardada en MySQL.
   const imagenActual =
     producto.imagen ||
     imagenesProductos[producto.nombre?.trim()] ||
@@ -109,7 +107,6 @@ const ProductCard = ({
     formulario.imagen ||
     imagenActual;
 
-  // ACTUALIZAR CAMPOS DEL FORMULARIO
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -119,7 +116,6 @@ const ProductCard = ({
     }));
   };
 
-  // ABRIR FORMULARIO DE EDICIÓN
   const abrirEdicion = () => {
     setFormulario(crearFormulario(producto));
     setArchivoImagen(null);
@@ -129,7 +125,6 @@ const ProductCard = ({
     setEditando(true);
   };
 
-  // CANCELAR EDICIÓN
   const cancelarEdicion = () => {
     setEditando(false);
     setFormulario(crearFormulario(producto));
@@ -137,7 +132,6 @@ const ProductCard = ({
     setMensajeError('');
   };
 
-  // SELECCIONAR NUEVA IMAGEN
   const handleImagenChange = (e) => {
     const archivo = e.target.files?.[0];
 
@@ -172,7 +166,6 @@ const ProductCard = ({
     setArchivoImagen(archivo);
   };
 
-  // GUARDAR MODIFICACIONES
   const handleGuardarCambios = async (e) => {
     e.preventDefault();
 
@@ -195,7 +188,6 @@ const ProductCard = ({
 
       let urlImagen = formulario.imagen;
 
-      // SUBIR NUEVA IMAGEN SI SE SELECCIONÓ ARCHIVO
       if (archivoImagen) {
 
         const formData = new FormData();
@@ -260,7 +252,6 @@ const ProductCard = ({
         );
       }
 
-      // CONSTRUIR OBJETO COMPLETO
       const productoActualizado = {
         nombre: formulario.nombre.trim(),
         precio: precioNumerico,
@@ -275,7 +266,6 @@ const ProductCard = ({
           .filter(Boolean)
       };
 
-      // PETICIÓN PUT AL BACKEND
       const respuesta = await fetch(
         `/api/productos/${producto.id}`,
         {
@@ -296,7 +286,6 @@ const ProductCard = ({
 
       const productoGuardado = await respuesta.json();
 
-      // ACTUALIZAR EL CATÁLOGO SIN RECARGAR
       if (onActualizar) {
         onActualizar(productoGuardado);
       }
@@ -316,7 +305,6 @@ const ProductCard = ({
     }
   };
 
-  // ELIMINAR PRODUCTO
   const handleDelete = async () => {
 
     if (!esAdmin || eliminando) return;
@@ -367,7 +355,6 @@ const ProductCard = ({
     }
   };
 
-  // AÑADIR AL CARRITO
   const handleAddToCart = () => {
     if (typeof onAddToCart === 'function') {
       onAddToCart(producto);
@@ -378,16 +365,15 @@ const ProductCard = ({
     }
   };
 
-  // FORMATO DE PRECIO
   const formatearPrecio = (valor) => {
     const numero = Number(valor);
 
     return Number.isFinite(numero)
       ? new Intl.NumberFormat('es-AR', {
-          style: 'currency',
-          currency: 'ARS',
-          maximumFractionDigits: 0
-        }).format(numero)
+        style: 'currency',
+        currency: 'ARS',
+        maximumFractionDigits: 0
+      }).format(numero)
       : 'Precio no disponible';
   };
 
@@ -404,7 +390,6 @@ const ProductCard = ({
 
       {/* IMAGEN */}
       <div className="product-image-container">
-
         {imagenActual ? (
           <img
             src={imagenActual}
@@ -425,23 +410,16 @@ const ProductCard = ({
             aria-label={`Sin imagen: ${producto.nombre}`}
           />
         )}
-
       </div>
 
-      {/* NOMBRE */}
-      <h3
-        className="product-name"
-        style={{ marginTop: 0 }}
-      >
+      <h3 className="product-name" style={{ marginTop: 0 }}>
         {producto.nombre}
       </h3>
 
-      {/* DESCRIPCIÓN */}
       <p className="product-description">
         {producto.descripcion}
       </p>
 
-      {/* PRECIO */}
       <p
         className="precio product-price"
         style={{
@@ -453,37 +431,20 @@ const ProductCard = ({
         {formatearPrecio(producto.precio)}
       </p>
 
-      {/* MENSAJE DE ÉXITO */}
       {mensajeExito && (
-        <p
-          role="status"
-          style={{
-            color: '#15803d',
-            fontWeight: 'bold',
-            fontSize: '0.85rem'
-          }}
-        >
+        <p role="status" style={{ color: '#15803d', fontWeight: 'bold', fontSize: '0.85rem' }}>
           {mensajeExito}
         </p>
       )}
 
-      {/* MENSAJE DE ERROR */}
       {mensajeError && (
-        <p
-          role="alert"
-          style={{
-            color: '#dc2626',
-            fontWeight: 'bold',
-            fontSize: '0.85rem'
-          }}
-        >
+        <p role="alert" style={{ color: '#dc2626', fontWeight: 'bold', fontSize: '0.85rem' }}>
           {mensajeError}
         </p>
       )}
 
       {/* FORMULARIO DE EDICIÓN */}
       {esAdmin && editando && (
-
         <form
           onSubmit={handleGuardarCambios}
           style={{
@@ -498,181 +459,61 @@ const ProductCard = ({
             color: '#0f172a'
           }}
         >
-
-          <h4 style={{ margin: 0 }}>
-            ✏️ Editar producto
-          </h4>
-
-          {/* NOMBRE */}
+          <h4 style={{ margin: 0 }}>✏️ Editar producto</h4>
+          {/* ... (tus labels y campos de formulario se mantienen igual) ... */}
           <label style={estilos.label}>
             Nombre
-            <input
-              type="text"
-              name="nombre"
-              value={formulario.nombre}
-              onChange={handleChange}
-              required
-              style={estilos.input}
-            />
+            <input type="text" name="nombre" value={formulario.nombre} onChange={handleChange} required style={estilos.input} />
           </label>
-
-          {/* PRECIO */}
           <label style={estilos.label}>
             Precio (ARS)
-            <input
-              type="number"
-              name="precio"
-              min="0"
-              step="any"
-              value={formulario.precio}
-              onChange={handleChange}
-              required
-              style={estilos.input}
-            />
+            <input type="number" name="precio" min="0" step="any" value={formulario.precio} onChange={handleChange} required style={estilos.input} />
           </label>
-
-          {/* DESCRIPCIÓN */}
           <label style={estilos.label}>
             Descripción
-            <textarea
-              name="descripcion"
-              value={formulario.descripcion}
-              onChange={handleChange}
-              rows="3"
-              style={estilos.input}
-            />
+            <textarea name="descripcion" value={formulario.descripcion} onChange={handleChange} rows="3" style={estilos.input} />
           </label>
-
-          {/* CATEGORÍA */}
           <label style={estilos.label}>
             Categoría
-            <select
-              name="nombreCategoria"
-              value={formulario.nombreCategoria}
-              onChange={handleChange}
-              style={estilos.input}
-            >
+            <select name="nombreCategoria" value={formulario.nombreCategoria} onChange={handleChange} style={estilos.input}>
               {CATEGORIAS.map((categoria) => (
-                <option
-                  key={categoria}
-                  value={categoria}
-                >
-                  {categoria}
-                </option>
+                <option key={categoria} value={categoria}>{categoria}</option>
               ))}
             </select>
           </label>
-
-          {/* TALLE */}
           <label style={estilos.label}>
             Talle
-            <select
-              name="talle"
-              value={formulario.talle}
-              onChange={handleChange}
-              style={estilos.input}
-            >
+            <select name="talle" value={formulario.talle} onChange={handleChange} style={estilos.input}>
               {TALLES.map((talle) => (
-                <option
-                  key={talle}
-                  value={talle}
-                >
-                  {talle}
-                </option>
+                <option key={talle} value={talle}>{talle}</option>
               ))}
             </select>
           </label>
-
-          {/* STOCK */}
           <label style={estilos.label}>
             Stock disponible
-            <input
-              type="number"
-              name="stock"
-              min="0"
-              step="1"
-              value={formulario.stock}
-              onChange={handleChange}
-              required
-              style={estilos.input}
-            />
+            <input type="number" name="stock" min="0" step="1" value={formulario.stock} onChange={handleChange} required style={estilos.input} />
           </label>
-
-          {/* ETIQUETAS */}
           <label style={estilos.label}>
             Etiquetas separadas por coma
-            <input
-              type="text"
-              name="etiquetas"
-              value={formulario.etiquetas}
-              onChange={handleChange}
-              style={estilos.input}
-            />
+            <input type="text" name="etiquetas" value={formulario.etiquetas} onChange={handleChange} style={estilos.input} />
           </label>
-
-          {/* IMAGEN ACTUAL */}
           <label style={estilos.label}>
             Ruta o URL de imagen
-            <input
-              type="text"
-              name="imagen"
-              value={formulario.imagen}
-              onChange={handleChange}
-              style={estilos.input}
-              placeholder="/uploads/imagen.jpg"
-            />
+            <input type="text" name="imagen" value={formulario.imagen} onChange={handleChange} style={estilos.input} placeholder="/uploads/imagen.jpg" />
           </label>
-
-          {/* SUBIR NUEVA IMAGEN */}
           <label style={estilos.label}>
             O seleccionar nueva imagen
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleImagenChange}
-              style={estilos.input}
-            />
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImagenChange} style={estilos.input} />
           </label>
-
-          {/* VISTA PREVIA */}
           {imagenEdicion && (
-            <img
-              src={imagenEdicion}
-              alt="Vista previa de edición"
-              style={{
-                width: '100%',
-                height: '150px',
-                objectFit: 'contain',
-                backgroundColor: '#ffffff',
-                borderRadius: '8px'
-              }}
-            />
+            <img src={imagenEdicion} alt="Vista previa de edición" style={{ width: '100%', height: '150px', objectFit: 'contain', backgroundColor: '#ffffff', borderRadius: '8px' }} />
           )}
-
-          {/* GUARDAR */}
-          <button
-            type="submit"
-            disabled={guardando}
-            style={{
-              ...estilos.botonGuardar,
-              opacity: guardando ? 0.6 : 1
-            }}
-          >
-            {guardando
-              ? 'Guardando...'
-              : '✓ Guardar cambios'}
+          <button type="submit" disabled={guardando} style={{ ...estilos.botonGuardar, opacity: guardando ? 0.6 : 1 }}>
+            {guardando ? 'Guardando...' : '✓ Guardar cambios'}
           </button>
-
-          {/* CANCELAR */}
-          <button
-            type="button"
-            onClick={cancelarEdicion}
-            disabled={guardando}
-            style={estilos.botonCancelar}
-          >
+          <button type="button" onClick={cancelarEdicion} disabled={guardando} style={estilos.botonCancelar}>
             Cancelar
           </button>
-
         </form>
       )}
 
@@ -687,8 +528,6 @@ const ProductCard = ({
           width: '100%'
         }}
       >
-
-        {/* VER DETALLES */}
         <Link
           to={`/producto/${producto.id}`}
           className="btn-onoff"
@@ -706,23 +545,23 @@ const ProductCard = ({
           Ver detalles
         </Link>
 
-        {/* AÑADIR AL CARRITO */}
-        <button
-          className="btn-onoff"
-          type="button"
-          onClick={handleAddToCart}
-          style={{
-            width: '100%',
-            minHeight: '44px',
-            boxSizing: 'border-box',
-            cursor: 'pointer'
-          }}
-        >
-          🛒 Añadir al carrito
-        </button>
+        {/* SOLO MOSTRAMOS EL BOTON DE AÑADIR SI NO ES ADMIN */}
+        {!esAdmin && (
+          <button
+            className="btn-onoff"
+            type="button"
+            onClick={handleAddToCart}
+            style={{
+              width: '100%',
+              minHeight: '44px',
+              boxSizing: 'border-box',
+              cursor: 'pointer'
+            }}
+          >
+            🛒 Añadir al carrito
+          </button>
+        )}
 
-        
-        
         {/* EDITAR PRODUCTO - SOLO ADMIN */}
         {esAdmin && (
           <Link
@@ -745,7 +584,6 @@ const ProductCard = ({
             ✏️ Editar producto
           </Link>
         )}
-
 
         {/* ELIMINAR SOLO ADMIN */}
         {esAdmin && (
@@ -777,80 +615,27 @@ const ProductCard = ({
                   marginTop: '10px'
                 }}
               >
-                <p>
-                  ¿Seguro que querés eliminar este producto?
-                </p>
-
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  disabled={eliminando}
-                >
-                  {eliminando
-                    ? 'Eliminando...'
-                    : 'Sí, eliminar'}
+                <p>¿Seguro que querés eliminar este producto?</p>
+                <button type="button" onClick={handleDelete} disabled={eliminando}>
+                  {eliminando ? 'Eliminando...' : 'Sí, eliminar'}
                 </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setConfirmarEliminar(false)
-                  }
-                  disabled={eliminando}
-                >
+                <button type="button" onClick={() => setConfirmarEliminar(false)} disabled={eliminando}>
                   Cancelar
                 </button>
               </div>
             )}
           </div>
         )}
-
       </div>
     </div>
   );
 };
 
-// ESTILOS DE EDICIÓN
 const estilos = {
-  label: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '5px',
-    fontSize: '0.85rem',
-    fontWeight: 'bold',
-    color: '#0f172a'
-  },
-
-  input: {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #cbd5e1',
-    borderRadius: '7px',
-    backgroundColor: '#ffffff',
-    color: '#0f172a',
-    boxSizing: 'border-box',
-    fontSize: '0.9rem'
-  },
-
-  botonGuardar: {
-    backgroundColor: '#1D428A',
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '12px',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  },
-
-  botonCancelar: {
-    backgroundColor: '#ffffff',
-    color: '#1D428A',
-    border: '1px solid #1D428A',
-    borderRadius: '8px',
-    padding: '10px',
-    fontWeight: 'bold',
-    cursor: 'pointer'
-  }
+  label: { display: 'flex', flexDirection: 'column', gap: '5px', fontSize: '0.85rem', fontWeight: 'bold', color: '#0f172a' },
+  input: { width: '100%', padding: '10px', border: '1px solid #cbd5e1', borderRadius: '7px', backgroundColor: '#ffffff', color: '#0f172a', boxSizing: 'border-box', fontSize: '0.9rem' },
+  botonGuardar: { backgroundColor: '#1D428A', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '12px', fontWeight: 'bold', cursor: 'pointer' },
+  botonCancelar: { backgroundColor: '#ffffff', color: '#1D428A', border: '1px solid #1D428A', borderRadius: '8px', padding: '10px', fontWeight: 'bold', cursor: 'pointer' }
 };
 
 export default ProductCard;

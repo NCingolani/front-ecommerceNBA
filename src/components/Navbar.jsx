@@ -5,6 +5,9 @@ import { useAuth } from "../auth/AuthContext";
 export default function Navbar({ cantidadCarrito, onToggleColor }) {
   const { session, logout } = useAuth();
 
+  // Verificamos si es administrador
+  const isAdmin = session?.role === "ADMIN";
+
   return (
     <header className="nba-navbar">
       <Link to="/" className="nba-logo">
@@ -20,11 +23,16 @@ export default function Navbar({ cantidadCarrito, onToggleColor }) {
       </nav>
 
       <div className="nba-nav-right">
-        <span aria-label="Productos agregados al carrito">
-          🛒 {cantidadCarrito}
-        </span>
+        {/* SOLO MOSTRAMOS EL CARRITO SI NO ES ADMIN */}
+        {!isAdmin && (
+          <span aria-label="Productos agregados al carrito">
+            <Link to="/carrito" style={{ textDecoration: 'none', color: 'inherit' }}>
+              🛒 {cantidadCarrito}
+            </Link>
+          </span>
+        )}
         <OnOff onToggle={onToggleColor} />
-        {session?.role === "ADMIN" && <Link to="/crear">Añadir producto</Link>}
+        {isAdmin && <Link to="/crear">Añadir producto</Link>}
         {session ? (
           <button className="nba-auth-button" type="button" onClick={logout}>Cerrar sesión</button>
         ) : (

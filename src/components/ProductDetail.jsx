@@ -129,27 +129,32 @@ const ProductDetail = ({ onAddToCart }) => {
                     )}
 
                     <div className="product-detail-actions">
-                        <label className="product-detail-quantity">
-                            Cantidad
-                            <select
-                                value={cantidad}
-                                onChange={(e) => setCantidad(Number(e.target.value))}
-                                disabled={!disponible}
-                            >
-                                {Array.from({ length: Math.min(Math.max(stock, 1), 10) }, (_, i) => i + 1).map((n) => (
-                                    <option key={n} value={n}>{n}</option>
-                                ))}
-                            </select>
-                        </label>
+                        {/* SOLO MOSTRAMOS OPCIONES DE CANTIDAD Y AÑADIR SI NO ES ADMIN */}
+                        {!esAdmin && (
+                            <>
+                                <label className="product-detail-quantity">
+                                    Cantidad
+                                    <select
+                                        value={cantidad}
+                                        onChange={(e) => setCantidad(Number(e.target.value))}
+                                        disabled={!disponible}
+                                    >
+                                        {Array.from({ length: Math.min(Math.max(stock, 1), 10) }, (_, i) => i + 1).map((n) => (
+                                            <option key={n} value={n}>{n}</option>
+                                        ))}
+                                    </select>
+                                </label>
 
-                        <button
-                            type="button"
-                            className="product-detail-add"
-                            disabled={!disponible}
-                            onClick={() => handleAddToCart && handleAddToCart({ ...producto, cantidad })}
-                        >
-                            🛒 Añadir al carrito
-                        </button>
+                                <button
+                                    type="button"
+                                    className="product-detail-add"
+                                    disabled={!disponible}
+                                    onClick={() => handleAddToCart && handleAddToCart({ ...producto, cantidad })}
+                                >
+                                    🛒 Añadir al carrito
+                                </button>
+                            </>
+                        )}
 
                         <button
                             type="button"

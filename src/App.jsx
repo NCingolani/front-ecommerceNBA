@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 import {
@@ -42,9 +41,8 @@ function App() {
     <AuthProvider>
       <CartProvider>
         <div
-          className={`app-container ${
-            modoActivo ? 'modo-claro' : 'modo-oscuro'
-          }`}
+          className={`app-container ${modoActivo ? 'modo-claro' : 'modo-oscuro'
+            }`}
         >
           <Routes>
 
@@ -201,6 +199,8 @@ function HeaderActions({ modoActivo, onToggleColor }) {
   const { session, logout } = useAuth();
   const { cantidadTotal } = useCart();
 
+  const esAdmin = session?.role === 'ADMIN';
+
   return (
     <nav
       className="header-actions"
@@ -221,16 +221,18 @@ function HeaderActions({ modoActivo, onToggleColor }) {
         Catálogo
       </Link>
 
-      {/* CARRITO */}
-      <Link
-        className="header-link"
-        to="/carrito"
-      >
-        🛒 Carrito ({cantidadTotal})
-      </Link>
+      {/* CARRITO - SOLO CLIENTES (NO ADMIN) */}
+      {!esAdmin && (
+        <Link
+          className="header-link"
+          to="/carrito"
+        >
+          🛒 Carrito ({cantidadTotal})
+        </Link>
+      )}
 
-      {/* MIS PEDIDOS - USUARIOS AUTENTICADOS */}
-      {session && (
+      {/* MIS PEDIDOS - SOLO CLIENTES AUTENTICADOS (NO ADMIN) */}
+      {session && !esAdmin && (
         <Link
           className="header-link"
           to="/mis-pedidos"
@@ -240,7 +242,7 @@ function HeaderActions({ modoActivo, onToggleColor }) {
       )}
 
       {/* OPCIONES DEL ADMINISTRADOR */}
-      {session?.role === 'ADMIN' && (
+      {esAdmin && (
         <Link
           className="header-link header-link-primary"
           to="/crear"
