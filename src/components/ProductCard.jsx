@@ -339,8 +339,11 @@ const ProductCard = ({
       );
 
       if (!res.ok) {
+        if (res.status === 403 || res.status === 401) {
+          throw new Error('No tenés permisos de ADMIN o tu sesión expiró.');
+        }
         throw new Error(
-          'Error al eliminar producto. Verificá tener rol ADMIN.'
+          'No se puede eliminar este producto porque ya tiene ventas registradas en pedidos. Podés editar su stock a 0.'
         );
       }
 
