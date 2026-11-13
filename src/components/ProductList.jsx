@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useCart } from '../context/CartContext';
 import ProductCard from './ProductCard';
@@ -102,6 +102,7 @@ const ProductList = () => {
   const esAdmin = session?.role === 'ADMIN';
 
   const [searchParams] = useSearchParams();
+  const location = useLocation();
 
   const categoriaURL = normalizarCategoria(
     searchParams.get('categoria')?.trim() || ''
@@ -118,7 +119,7 @@ const ProductList = () => {
 
   // FILTROS SELECCIONADOS
   const [categoriasSeleccionadas, setCategorias] = useState([]);
-  const [equiposSeleccionados, setEquipos] = useState([]);
+  const [equiposSeleccionados, setEquiposSeleccionados] = useState([]);
 
   const [precioMin, setPrecioMin] = useState(0);
   const [precioMax, setPrecioMax] = useState(null);
@@ -131,9 +132,18 @@ const ProductList = () => {
     maximo: null
   });
 
-  // OBTENER PRODUCTOS DESDE EL BACKEND
-  useEffect(() => {
-    fetch('/api/productos')
+  // OBTENER O BUSCAR PRODUCTOS DESDE EL BACKEND
+  const cargarProductos = (termino = '') => {
+    const textoLimpio = termino.trim();
+
+    const endpoint = textoLimpio
+      ? `/api/productos/buscar?nombre=${encodeURIComponent(textoLimpio)}`
+      : '/api/productos';
+
+    setLoading(true);
+    setError('');
+
+    fetch(endpoint)
       .then((res) => {
         if (!res.ok) {
           throw new Error('Error al obtener productos');
@@ -154,7 +164,30 @@ const ProductList = () => {
 
         setLoading(false);
       });
-  }, []);
+  };
+
+  // CARGA INICIAL, BÚSQUEDA DESDE OTRAS VISTAS Y CLIC EN "CATÁLOGO" EN EL NAVBAR
+  useEffect(() => {
+    const terminoInicial = searchParams.get('buscar')?.trim() || '';
+    setBusqueda(terminoInicial);
+    setCategorias([]);
+    setEquiposSeleccionados([]);
+    setPrecioMin(0);
+    setPrecioMax(null);
+    setFiltrosAplicados({
+      categorias: [],
+      equipos: [],
+      minimo: 0,
+      maximo: null
+    });
+    cargarProductos(terminoInicial);
+  }, [location.key]);
+
+  // EJECUTAR BÚSQUEDA AL PRESIONAR ENTER
+  const handleBuscar = (e) => {
+    e.preventDefault();
+    cargarProductos(busqueda);
+  };
 
   // ACTUALIZAR LISTADO AL ELIMINAR PRODUCTO
   const handleProductoEliminado = (idEliminado) => {
@@ -213,6 +246,7 @@ const ProductList = () => {
     setEquiposSeleccionados([]);
     setPrecioMin(0);
     setPrecioMax(null);
+    setBusqueda('');
 
     setFiltrosAplicados({
       categorias: [],
@@ -220,9 +254,11 @@ const ProductList = () => {
       minimo: 0,
       maximo: null
     });
+
+    cargarProductos('');
   };
 
-  // FILTRADO COMBINADO
+  // FILTRADO COMBINADO (la búsqueda por nombre la resuelve el endpoint /api/productos/buscar)
   const productosFiltrados = productos.filter((producto) => {
     const categoriaProducto = obtenerCategoria(producto);
     const equipoProducto = obtenerEquipo(producto);
@@ -233,11 +269,6 @@ const ProductList = () => {
       !categoriaURL ||
       normalizar(categoriaProducto) ===
         normalizar(categoriaURL);
-
-    // BÚSQUEDA LOCAL TEMPORAL
-    // Pendiente: conectar con endpoint de búsqueda
-    const coincideBusqueda = normalizar(producto.nombre)
-      .includes(normalizar(busqueda));
 
     // FILTRO POR CATEGORÍA
     const coincideCategoria =
@@ -260,7 +291,6 @@ const ProductList = () => {
 
     return (
       coincideURL &&
-      coincideBusqueda &&
       coincideCategoria &&
       coincideEquipo &&
       coincidePrecio
@@ -288,24 +318,6 @@ const ProductList = () => {
         String(b.nombre),
         'es'
       )
-    );
-  }
-
-  // ESTADO DE CARGA
-  if (loading) {
-    return (
-      <p className="catalog-message">
-        Cargando catálogo...
-      </p>
-    );
-  }
-
-  // ESTADO DE ERROR
-  if (error) {
-    return (
-      <p className="catalog-message" role="alert">
-        {error}
-      </p>
     );
   }
 
@@ -347,14 +359,17 @@ const ProductList = () => {
       {/* BUSCADOR Y ORDENAMIENTO */}
       <div className="catalog-toolbar">
 
-        <div className="catalog-search">
+        <form
+          className="catalog-search"
+          onSubmit={handleBuscar}
+        >
           <input
             type="search"
-            placeholder="🔍 Buscar productos... Ej: Lakers"
+            placeholder="🔍 Buscar productos y presioná Enter... Ej: Lakers"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
-        </div>
+        </form>
 
         <div className="catalog-sort">
           <select
@@ -514,29 +529,41 @@ const ProductList = () => {
         {/* LISTADO DE PRODUCTOS */}
         <section className="catalog-products">
 
-          <p className="catalog-results">
-            {productosOrdenados.length}
-            {productosOrdenados.length === 1
-              ? ' producto encontrado'
-              : ' productos encontrados'}
-          </p>
-
-          <div className="product-list">
-            {productosOrdenados.map((producto) => (
-              <ProductCard
-                key={producto.id}
-                producto={producto}
-                onAddToCart={agregarAlCarrito}
-                onEliminar={handleProductoEliminado}
-              />
-            ))}
-          </div>
-
-          {/* SIN RESULTADOS */}
-          {productosOrdenados.length === 0 && (
-            <p className="catalog-empty">
-              No encontramos productos con esos filtros.
+          {loading ? (
+            <p className="catalog-message">
+              Cargando productos...
             </p>
+          ) : error ? (
+            <p className="catalog-message" role="alert">
+              {error}
+            </p>
+          ) : (
+            <>
+              <p className="catalog-results">
+                {productosOrdenados.length}
+                {productosOrdenados.length === 1
+                  ? ' producto encontrado'
+                  : ' productos encontrados'}
+              </p>
+
+              <div className="product-list">
+                {productosOrdenados.map((producto) => (
+                  <ProductCard
+                    key={producto.id}
+                    producto={producto}
+                    onAddToCart={agregarAlCarrito}
+                    onEliminar={handleProductoEliminado}
+                  />
+                ))}
+              </div>
+
+              {/* SIN RESULTADOS */}
+              {productosOrdenados.length === 0 && (
+                <p className="catalog-empty">
+                  No encontramos productos con esos filtros.
+                </p>
+              )}
+            </>
           )}
 
         </section>

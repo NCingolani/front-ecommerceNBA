@@ -204,7 +204,12 @@ const Cart = () => {
 
     const handleNavSearchSubmit = (e) => {
         e.preventDefault();
-        navigate('/productos');
+        const termino = navSearch.trim();
+        if (termino) {
+            navigate(`/productos?buscar=${encodeURIComponent(termino)}`);
+        } else {
+            navigate('/productos');
+        }
     };
 
     const formatPrice = (value) => `$ ${Number(value || 0).toLocaleString('es-AR')}`;
