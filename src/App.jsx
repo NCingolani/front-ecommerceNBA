@@ -101,7 +101,29 @@ function App() {
             {/* DETALLE DEL PRODUCTO */}
             <Route
               path="/producto/:id"
-              element={<ProductDetail />}
+              element={
+                <>
+                  <header className="header">
+                    <Link
+                      to="/"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <h1>Tienda NBA</h1>
+                    </Link>
+
+                    <p className="subtitle">
+                      Explora nuestra colección exclusiva
+                    </p>
+
+                    <HeaderActions
+                      modoActivo={modoActivo}
+                      onToggleColor={handleToggleColor}
+                    />
+                  </header>
+
+                  <ProductDetail />
+                </>
+              }
             />
 
             {/* INICIAR SESIÓN */}
